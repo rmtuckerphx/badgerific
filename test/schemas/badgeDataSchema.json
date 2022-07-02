@@ -1,0 +1,11 @@
+{
+    "$id": "BadgeDataSchema",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "Schema for BadgeData",
+    "type": "object",
+    "properties": {
+        "value": {
+            "type": ["null", "string"]
+          }
+    }
+  }
