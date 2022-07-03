@@ -80,7 +80,7 @@ describe('Badges', () => {
     badges.onBadgeEarned = (badge: EarnedBadge) => {
       earnedCounter++;
     };
-    
+
     badges.setData(emptyData);
     badges.setValue('gameCount', 1);
     badges.setValue('gameCount', 1);
@@ -108,7 +108,7 @@ describe('Badges', () => {
     badges.onBadgeEarned = (badge: EarnedBadge) => {
       earnedCounter++;
     };
-    
+
     badges.setData(emptyData);
     badges.addValue('gameCount', 1);
     badges.addValue('gameCount');
@@ -127,6 +127,82 @@ describe('Badges', () => {
     expect(result.earned[0].count).toEqual(1);
 
     expect(earnedCounter).toEqual(1);
+  });
+
+  test('multiple addValue across sessions should earn badge only once per session', () => {
+    
+    // create rule that only updates once per session
+    const rules: Rule[] = [
+      {
+        id: 'r1',
+        active: true,
+        updatePeriod: Period.Session,
+        condition: 'prop1 > 0',
+      },
+    ];
+
+    const badges = new Badges(rules, tz);
+    let earnedCounter = 0;
+    let earned: EarnedBadge[];
+
+    badges.onBadgeEarned = (badge: EarnedBadge) => {
+      earnedCounter++;
+    };
+
+    badges.setData(emptyData);
+
+    // start session 1
+    badges.startSession();
+
+    // add value twice, only 1 is updated due to session period
+    badges.addValue('prop1');
+    badges.addValue('prop1');
+
+    // get badges earned during session 1
+    earned = badges.getEarnedBadges(Period.Session);
+    
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('r1');
+    expect(earned[0].count).toEqual(1);
+
+    // start session 2
+    badges.startSession();
+
+    // no badges earned yet for session 2
+    earned = badges.getEarnedBadges(Period.Session);
+    expect(earned.length).toEqual(0);
+
+    // add value during session 2
+    badges.addValue('prop1');
+
+    // get badges earned during session 2
+    // count value is total, not just for session 2
+    earned = badges.getEarnedBadges(Period.Session);
+
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('r1');
+    expect(earned[0].count).toEqual(2);
+
+    // get badges earned during global
+    earned = badges.getEarnedBadges(Period.Global);
+
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('r1');
+    expect(earned[0].count).toEqual(2);
+
+    // get badge data
+    const result = badges.toJson();
+
+    // shows that prop1 property was incremented to 3
+    expect(result.props.prop1).toEqual(3);
+
+    // and that the r1 badge was earned twice
+    expect(result.earned.length).toEqual(1);
+    expect(result.earned[0].id).toEqual('r1');
+    expect(result.earned[0].count).toEqual(2);
+
+    // onBadgeEarned callback was called twice
+    expect(earnedCounter).toEqual(2);
   });
 
   test('startSession should set values', () => {
