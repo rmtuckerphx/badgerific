@@ -153,7 +153,7 @@ export class Badges {
 
   setData(data: BadgeData) {
     // deep clone
-    this.data = JSON.parse(JSON.stringify(data, null, 2))
+    this.data = JSON.parse(JSON.stringify(data, null, 2));
 
     this.init();
   }
@@ -164,6 +164,36 @@ export class Badges {
 
   setValue(propName: string, value: string | number | boolean, skipEval = false) {
     this.data.props[propName] = value;
+
+    if (!skipEval) {
+      this.evaluate();
+    }
+  }
+
+  addValue(propName: string, value = 1, skipEval = false) {
+    const oldValue = Number(this.data.props[propName] ?? 0);
+
+    if (typeof oldValue === 'number') {
+      this.data.props[propName] = oldValue + value;
+    } else {
+      // changing type to number
+      this.data.props[propName] = value;
+    }
+
+    if (!skipEval) {
+      this.evaluate();
+    }
+  }
+
+  subtractValue(propName: string, value = 1, skipEval = false) {
+    const oldValue = Number(this.data.props[propName] ?? 0);
+
+    if (typeof oldValue === 'number') {
+      this.data.props[propName] = oldValue - value;
+    } else {
+      // changing type to number
+      this.data.props[propName] = value;
+    }
 
     if (!skipEval) {
       this.evaluate();
@@ -270,6 +300,23 @@ export class Badges {
     this.data.systemProps.dayOfWeek = dayOfWeek;
     this.data.systemProps.isWeekDay = dayOfWeek <= 5;
     this.data.systemProps.isWeekEnd = dayOfWeek > 5;
+  }
+
+  // getAllEarnedBadges(): EarnedBadge[] {
+  //   const dateMin = new Date(0).toISOString();
+  //   return this.getEarnedBadgesSince(dateMin);
+  // }
+
+  getEarnedBadges(period: Period = Period.Global): EarnedBadge[] {
+    const lastTimestamp = this.data.periods![period].lastTimestamp;
+    const badges = this.data.earned.filter((b) => {
+      return b.lastEarned >= lastTimestamp;
+    });
+    return badges;
+
+    // const found = this.data.earned.find((b: { id: string }) => b.id === rule.id);
+    // const dateMin = new Date(0).toISOString();
+    // return this.getEarnedBadgesSince(dateMin);
   }
 
   startSession() {

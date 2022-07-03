@@ -59,9 +59,15 @@ describe('Badges', () => {
     badges.setData(emptyData);
     badges.setValue('gameCount', 1);
 
+    const earned = badges.getEarnedBadges();
     const result = badges.toJson();
 
     expect(result.props.gameCount).toEqual(1);
+
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('b01');
+    expect(earned[0].count).toEqual(1);
+
     expect(result.earned.length).toEqual(1);
     expect(result.earned[0].id).toEqual('b01');
     expect(result.earned[0].count).toEqual(1);
@@ -79,15 +85,49 @@ describe('Badges', () => {
     badges.setValue('gameCount', 1);
     badges.setValue('gameCount', 1);
 
+    const earned = badges.getEarnedBadges();
     const result = badges.toJson();
 
     expect(result.props.gameCount).toEqual(1);
+
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('b01');
+    expect(earned[0].count).toEqual(1);
+
     expect(result.earned.length).toEqual(1);
     expect(result.earned[0].id).toEqual('b01');
     expect(result.earned[0].count).toEqual(1);
+
     expect(earnedCounter).toEqual(1);
   });
 
+  test('multiple addValue of gameCount to 1 should earn b01 badge only once', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let earnedCounter = 0;
+
+    badges.onBadgeEarned = (badge: EarnedBadge) => {
+      earnedCounter++;
+    };
+    
+    badges.setData(emptyData);
+    badges.addValue('gameCount', 1);
+    badges.addValue('gameCount');
+
+    const earned = badges.getEarnedBadges();
+    const result = badges.toJson();
+
+    expect(result.props.gameCount).toEqual(2);
+
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('b01');
+    expect(earned[0].count).toEqual(1);
+
+    expect(result.earned.length).toEqual(1);
+    expect(result.earned[0].id).toEqual('b01');
+    expect(result.earned[0].count).toEqual(1);
+
+    expect(earnedCounter).toEqual(1);
+  });
 
   test('startSession should set values', () => {
     const badges = new Badges(testRules as Rule[], tz);
