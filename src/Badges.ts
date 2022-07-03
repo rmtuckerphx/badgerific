@@ -59,6 +59,13 @@ export class Badges {
   }
 
   private init() {
+    this.data.props.isNewYear = false;
+    this.data.props.isNewMonth = false;
+    this.data.props.isNewDay = false;
+    this.data.props.isNewWeek = false;
+    this.data.props.isNewSession = false;
+    this.data.props.isNewGame = false;
+
     if (!this.data.periods) {
       this.data.periods = {};
     }
@@ -81,97 +88,106 @@ export class Badges {
     if (!this.data.periods?.[Period.Global]) {
       this.data.periods![Period.Global] = {
         key: Period.Global,
-        lastTimestamp: DateTime.fromSeconds(0, { zone: 'UTC' }).toISO(),
+        lastTimestamp: this.getInitialTimestamp(),
       };
     }
+  }
+
+  private getInitialTimestamp(): string {
+    return '1970-01-01T00:00:00.000Z';
+    // return DateTime.fromSeconds(0, { zone: 'UTC' }).toISO();
   }
 
   private initPeriodTime(period: Period) {
     const curentKey = this.data.periods?.[period]?.key;
     const newKey = this.getKeyPeriodTime(period);
 
-    if (!curentKey || curentKey !== newKey) {
+    if (!curentKey) {
       this.data.periods![period] = {
         key: newKey,
-        lastTimestamp: DateTime.utc().toISO(),
+        lastTimestamp: this.getInitialTimestamp(),
       };
     }
   }
 
   private initPeriodCounter(period: Period) {
     const curentKey = this.data.periods?.[period]?.key;
-    const prefix = period === Period.Session ? 'S' : period === Period.Game ? 'G' : '';
 
     if (!curentKey) {
-        this.data.periods![period] = {
-            key: prefix + String(0).padStart(10, '0'),
-            lastTimestamp: DateTime.utc().toISO(),
-          };        
+      this.data.periods![period] = {
+        key: this.getKeyPeriodCounter(0),
+        lastTimestamp: this.getInitialTimestamp(),
+      };
     }
   }
 
-//   private initPeriodYear() {
-//     const yearKey = this.data.periods?.[Period.Year]?.key;
-//     const newKey = this.getKeyPeriodYear();
+  //   private initPeriodYear() {
+  //     const yearKey = this.data.periods?.[Period.Year]?.key;
+  //     const newKey = this.getKeyPeriodYear();
 
-//     if (!yearKey || yearKey !== newKey) {
-//       this.data.periods![Period.Year] = {
-//         key: newKey,
-//         lastTimestamp: DateTime.utc().toISO(),
-//       };
-//     }
+  //     if (!yearKey || yearKey !== newKey) {
+  //       this.data.periods![Period.Year] = {
+  //         key: newKey,
+  //         lastTimestamp: DateTime.utc().toISO(),
+  //       };
+  //     }
 
-//     //     if (!this.data.periods?.[Period.Year]) {
-//     //         const yearKey = this.data.periods?.[Period.Year]?.key;
-//     //         const newKey = this.getKeyPeriodYear();
+  //     //     if (!this.data.periods?.[Period.Year]) {
+  //     //         const yearKey = this.data.periods?.[Period.Year]?.key;
+  //     //         const newKey = this.getKeyPeriodYear();
 
-//     //         if (!yearKey || yearKey !== newKey) {
-//     //             this.data.periods![Period.Year] = {
-//     //                 key: newKey,
-//     //                 lastTimestamp: DateTime.utc().toISO()
-//     //             }
-//     //         }
-//     //     }
-//   }
+  //     //         if (!yearKey || yearKey !== newKey) {
+  //     //             this.data.periods![Period.Year] = {
+  //     //                 key: newKey,
+  //     //                 lastTimestamp: DateTime.utc().toISO()
+  //     //             }
+  //     //         }
+  //     //     }
+  //   }
 
-//   private initPeriodMonth() {
-//     const monthKey = this.data.periods?.[Period.Month]?.key;
-//     const newKey = this.getKeyPeriodMonth();
+  //   private initPeriodMonth() {
+  //     const monthKey = this.data.periods?.[Period.Month]?.key;
+  //     const newKey = this.getKeyPeriodMonth();
 
-//     if (!monthKey || monthKey !== newKey) {
-//       this.data.periods![Period.Month] = {
-//         key: newKey,
-//         lastTimestamp: DateTime.utc().toISO(),
-//       };
-//     }
-//   }
+  //     if (!monthKey || monthKey !== newKey) {
+  //       this.data.periods![Period.Month] = {
+  //         key: newKey,
+  //         lastTimestamp: DateTime.utc().toISO(),
+  //       };
+  //     }
+  //   }
 
-//   private initPeriodDay() {
-//     const dayKey = this.data.periods?.[Period.Day]?.key;
-//     const newKey = this.getKeyPeriodDay();
+  //   private initPeriodDay() {
+  //     const dayKey = this.data.periods?.[Period.Day]?.key;
+  //     const newKey = this.getKeyPeriodDay();
 
-//     if (!dayKey || dayKey !== newKey) {
-//       this.data.periods![Period.Day] = {
-//         key: newKey,
-//         lastTimestamp: DateTime.utc().toISO(),
-//       };
-//     }
-//   }
+  //     if (!dayKey || dayKey !== newKey) {
+  //       this.data.periods![Period.Day] = {
+  //         key: newKey,
+  //         lastTimestamp: DateTime.utc().toISO(),
+  //       };
+  //     }
+  //   }
 
-//   private initPeriodWeek() {
-//     const weekKey = this.data.periods?.[Period.Week]?.key;
-//     const newKey = this.getKeyPeriodWeek();
+  //   private initPeriodWeek() {
+  //     const weekKey = this.data.periods?.[Period.Week]?.key;
+  //     const newKey = this.getKeyPeriodWeek();
 
-//     if (!weekKey || weekKey !== newKey) {
-//       this.data.periods![Period.Week] = {
-//         key: newKey,
-//         lastTimestamp: DateTime.utc().toISO(),
-//       };
-//     }
-//   }
+  //     if (!weekKey || weekKey !== newKey) {
+  //       this.data.periods![Period.Week] = {
+  //         key: newKey,
+  //         lastTimestamp: DateTime.utc().toISO(),
+  //       };
+  //     }
+  //   }
+
+  private getKeyPeriodCounter(count: number): string {
+    return String(count).padStart(10, '0');
+  }
 
   private getKeyPeriodTime(period: Period): string {
-    const date = DateTime.now().setZone(this.timeZone);
+    // const date = DateTime.now().setZone(this.timeZone);
+    const date = DateTime.fromSeconds(0, { zone: 'UTC' });
 
     switch (period) {
       case Period.Year:
@@ -188,28 +204,28 @@ export class Badges {
     }
   }
 
-//   private getKeyPeriodYear(): string {
-//     return DateTime.now().setZone(this.timeZone).toFormat('yyyy');
-//   }
+  //   private getKeyPeriodYear(): string {
+  //     return DateTime.now().setZone(this.timeZone).toFormat('yyyy');
+  //   }
 
-//   private getKeyPeriodMonth(): string {
-//     return DateTime.now().setZone(this.timeZone).toFormat('yyyy-MM');
-//   }
+  //   private getKeyPeriodMonth(): string {
+  //     return DateTime.now().setZone(this.timeZone).toFormat('yyyy-MM');
+  //   }
 
-//   private getKeyPeriodDay(): string {
-//     return DateTime.now().setZone(this.timeZone).toFormat('yyyy-MM-dd');
-//   }
+  //   private getKeyPeriodDay(): string {
+  //     return DateTime.now().setZone(this.timeZone).toFormat('yyyy-MM-dd');
+  //   }
 
-//   private getKeyPeriodWeek(): string {
-//     return DateTime.now().setZone(this.timeZone).toFormat("yyyy-'W'WW");
-//   }
+  //   private getKeyPeriodWeek(): string {
+  //     return DateTime.now().setZone(this.timeZone).toFormat("yyyy-'W'WW");
+  //   }
 
   getRules() {
     return this.rules;
   }
 
   setData(data: BadgeData) {
-    this.data = data;
+    this.data = Object.assign({}, data);
 
     this.init();
   }
@@ -232,6 +248,20 @@ export class Badges {
         console.log({ success });
       }
     }
+  }
+
+  startSession() {
+    this.data.props.isNewSession = true;
+    const count = Number(this.data.periods![Period.Session].key);
+    this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
+    this.data.periods![Period.Session].lastTimestamp = DateTime.utc().toISO();
+  }
+
+  startGame() {
+    this.data.props.isNewGame = true;
+    const count = Number(this.data.periods![Period.Game].key);
+    this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
+    this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();
   }
 
   endSession() {}
