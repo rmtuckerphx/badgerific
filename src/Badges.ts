@@ -100,7 +100,9 @@ export class Badges {
 
   private initPeriodTime(period: Period) {
     const curentKey = this.data.periods?.[period]?.key;
-    const newKey = this.getKeyPeriodTime(period);
+    const date = DateTime.fromSeconds(0, { zone: 'UTC' });
+
+    const newKey = this.getKeyPeriodTime(period, date);
 
     if (!curentKey) {
       this.data.periods![period] = {
@@ -185,10 +187,7 @@ export class Badges {
     return String(count).padStart(10, '0');
   }
 
-  private getKeyPeriodTime(period: Period): string {
-    // const date = DateTime.now().setZone(this.timeZone);
-    const date = DateTime.fromSeconds(0, { zone: 'UTC' });
-
+  private getKeyPeriodTime(period: Period, date: DateTime): string {
     switch (period) {
       case Period.Year:
         return date.toFormat('yyyy');
@@ -234,12 +233,19 @@ export class Badges {
     return this.data;
   }
 
-  setValue(propName: string, value: string | number | boolean) {
+  setValue(propName: string, value: string | number | boolean, skipEval: boolean = false) {
     this.data.props[propName] = value;
-    this.evaluate();
+
+    if (!skipEval) {
+      this.evaluate();
+    }    
   }
 
   evaluate() {
+    const date = DateTime.now().setZone(this.timeZone);
+    this.preparePeriodTimeProps(date);
+
+
     for (const rule of this.rules) {
       if (rule.active) {
         const success = jexl.evalSync(rule.condition, this.data.props);
@@ -247,6 +253,33 @@ export class Badges {
         // const success = exp.evalSync(this.data.props);
         console.log({ success });
       }
+    }
+  }
+
+  private preparePeriodTimeProps(date: DateTime) {
+    const yearKey = this.getKeyPeriodTime(Period.Year, date);
+    const monthKey = this.getKeyPeriodTime(Period.Month, date);
+    const dayKey = this.getKeyPeriodTime(Period.Day, date);
+    const weekKey = this.getKeyPeriodTime(Period.Week, date);
+
+    if (this.data.periods![Period.Year].key !== yearKey) {
+      this.data.props.isNewYear = true;
+      this.data.periods![Period.Year] = { key: yearKey, lastTimestamp: DateTime.utc().toISO() };
+    }
+
+    if (this.data.periods![Period.Month].key !== monthKey) {
+      this.data.props.isNewMonth = true;
+      this.data.periods![Period.Month] = { key: monthKey, lastTimestamp: DateTime.utc().toISO() };
+    }
+
+    if (this.data.periods![Period.Day].key !== dayKey) {
+      this.data.props.isNewDay = true;
+      this.data.periods![Period.Day] = { key: dayKey, lastTimestamp: DateTime.utc().toISO() };
+    }
+
+    if (this.data.periods![Period.Week].key !== weekKey) {
+      this.data.props.isNewWeek = true;
+      this.data.periods![Period.Week] = { key: weekKey, lastTimestamp: DateTime.utc().toISO() };
     }
   }
 

@@ -31,7 +31,7 @@ describe('Badges', () => {
     expect(result.periods![Period.Month].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
 
     expect(result.periods![Period.Day].key).toEqual('1970-01-01');
-    expect(result.periods![Period.Global].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
+    expect(result.periods![Period.Day].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
 
     expect(result.periods![Period.Week].key).toEqual('1970-W01');
     expect(result.periods![Period.Week].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
@@ -79,6 +79,34 @@ describe('Badges', () => {
     expect(result.props.isNewGame).toEqual(true);
     expect(result.periods![Period.Game].key).toEqual('0000000001');
   });
+
+  test('evaluate() should set period time values', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    badges.evaluate();
+    
+    const result = badges.toJson();
+
+    expect(result.props.isNewYear).toEqual(true);
+    expect(result.props.isNewMonth).toEqual(true);
+    expect(result.props.isNewDay).toEqual(true);
+    expect(result.props.isNewWeek).toEqual(true);
+
+    expect(result.periods![Period.Year].key).toEqual('2022');
+    expect(result.periods![Period.Year].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
+
+    expect(result.periods![Period.Month].key).toEqual('2022-07');
+    expect(result.periods![Period.Month].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
+
+    expect(result.periods![Period.Day].key).toEqual('2022-07-03');
+    expect(result.periods![Period.Day].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
+
+    expect(result.periods![Period.Week].key).toEqual('2022-W26');
+    expect(result.periods![Period.Week].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
+
+  });
+
 
 
 });
