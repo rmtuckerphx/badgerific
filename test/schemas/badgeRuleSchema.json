@@ -73,7 +73,6 @@
       "required": [
         "id",
         "active",
-        "max",
         "maxPeriod",
         "updatePeriod",
         "condition"

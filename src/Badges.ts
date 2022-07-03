@@ -17,6 +17,7 @@ export interface PeriodData {
 }
 
 export interface BadgeData {
+  systemProps: Record<string, string | number | boolean>;
   props: Record<string, string | number | boolean>;
   periods?: Record<Period | string, PeriodData>;
 }
@@ -26,18 +27,18 @@ export interface Reward {
   value: number | string;
 }
 
-export interface Condition {
-  propName: string;
-  condition: string;
-  value: string | number;
-}
+// export interface Condition {
+//   propName: string;
+//   condition: string;
+//   value: string | number;
+// }
 
 export interface Rule {
   id: string;
   description?: string;
   active: boolean;
   rewards?: Reward[];
-  max: number;
+  max?: number;
   maxPeriod: Period;
   updatePeriod: Period;
   condition: string;
@@ -49,6 +50,7 @@ export class Badges {
   private timeZone: string;
 
   private data: BadgeData = {
+    systemProps: {},
     props: {},
     periods: {},
   };
@@ -59,12 +61,12 @@ export class Badges {
   }
 
   private init() {
-    this.data.props.isNewYear = false;
-    this.data.props.isNewMonth = false;
-    this.data.props.isNewDay = false;
-    this.data.props.isNewWeek = false;
-    this.data.props.isNewSession = false;
-    this.data.props.isNewGame = false;
+    this.data.systemProps.isNewYear = false;
+    this.data.systemProps.isNewMonth = false;
+    this.data.systemProps.isNewDay = false;
+    this.data.systemProps.isNewWeek = false;
+    this.data.systemProps.isNewSession = false;
+    this.data.systemProps.isNewGame = false;
 
     if (!this.data.periods) {
       this.data.periods = {};
@@ -245,10 +247,12 @@ export class Badges {
     const date = DateTime.now().setZone(this.timeZone);
     this.preparePeriodTimeProps(date);
 
+    const context:any = Object.assign({}, this.data.props);
+    context.system = this.data.systemProps;
 
     for (const rule of this.rules) {
       if (rule.active) {
-        const success = jexl.evalSync(rule.condition, this.data.props);
+        const success = jexl.evalSync(rule.condition, context);
         // const exp = jexl.createExpression(rule.condition);
         // const success = exp.evalSync(this.data.props);
         console.log({ success });
@@ -263,35 +267,35 @@ export class Badges {
     const weekKey = this.getKeyPeriodTime(Period.Week, date);
 
     if (this.data.periods![Period.Year].key !== yearKey) {
-      this.data.props.isNewYear = true;
+      this.data.systemProps.isNewYear = true;
       this.data.periods![Period.Year] = { key: yearKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Month].key !== monthKey) {
-      this.data.props.isNewMonth = true;
+      this.data.systemProps.isNewMonth = true;
       this.data.periods![Period.Month] = { key: monthKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Day].key !== dayKey) {
-      this.data.props.isNewDay = true;
+      this.data.systemProps.isNewDay = true;
       this.data.periods![Period.Day] = { key: dayKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Week].key !== weekKey) {
-      this.data.props.isNewWeek = true;
+      this.data.systemProps.isNewWeek = true;
       this.data.periods![Period.Week] = { key: weekKey, lastTimestamp: DateTime.utc().toISO() };
     }
   }
 
   startSession() {
-    this.data.props.isNewSession = true;
+    this.data.systemProps.isNewSession = true;
     const count = Number(this.data.periods![Period.Session].key);
     this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Session].lastTimestamp = DateTime.utc().toISO();
   }
 
   startGame() {
-    this.data.props.isNewGame = true;
+    this.data.systemProps.isNewGame = true;
     const count = Number(this.data.periods![Period.Game].key);
     this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();

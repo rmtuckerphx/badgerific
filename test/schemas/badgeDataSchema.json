@@ -4,11 +4,15 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
+        "systemProps": {
+            "$ref": "#/definitions/Props"
+        },
         "props": {
-          "$ref": "#/definitions/Props"
+            "$ref": "#/definitions/Props"
         }
     },
     "required": [
+        "systemProps",
         "props"
     ],
     "definitions": {
