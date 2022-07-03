@@ -17,6 +17,7 @@ describe('Badges', () => {
     expect(result.systemProps.isNewYear).toEqual(false);
     expect(result.systemProps.isNewMonth).toEqual(false);
     expect(result.systemProps.isNewDay).toEqual(false);
+    expect(result.systemProps.isNewHour).toEqual(false);
     expect(result.systemProps.isNewWeek).toEqual(false);
     expect(result.systemProps.isNewSession).toEqual(false);
     expect(result.systemProps.isNewGame).toEqual(false);
@@ -32,6 +33,9 @@ describe('Badges', () => {
 
     expect(result.periods![Period.Day].key).toEqual('1970-01-01');
     expect(result.periods![Period.Day].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
+
+    expect(result.periods![Period.Hour].key).toEqual('1970-01-01-H00');
+    expect(result.periods![Period.Hour].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
 
     expect(result.periods![Period.Week].key).toEqual('1970-W01');
     expect(result.periods![Period.Week].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
@@ -89,6 +93,7 @@ describe('Badges', () => {
     expect(result.systemProps.isNewYear).toEqual(true);
     expect(result.systemProps.isNewMonth).toEqual(true);
     expect(result.systemProps.isNewDay).toEqual(true);
+    expect(result.systemProps.isNewHour).toEqual(true);
     expect(result.systemProps.isNewWeek).toEqual(true);
 
     expect(result.periods![Period.Year].key).toEqual('2022');
@@ -99,6 +104,9 @@ describe('Badges', () => {
 
     expect(result.periods![Period.Day].key).toEqual('2022-07-03');
     expect(result.periods![Period.Day].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
+
+    expect(result.periods![Period.Hour].key).toEqual('2022-07-03-H08');
+    expect(result.periods![Period.Hour].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
 
     expect(result.periods![Period.Week].key).toEqual('2022-W26');
     expect(result.periods![Period.Week].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);

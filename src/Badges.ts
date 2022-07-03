@@ -6,6 +6,7 @@ export enum Period {
   Session = 'SESSION',
   Game = 'GAME',
   Day = 'DAY',
+  Hour = 'HOUR',
   Week = 'WEEK',
   Month = 'MONTH',
   Year = 'YEAR',
@@ -27,12 +28,6 @@ export interface Reward {
   value: number | string;
 }
 
-// export interface Condition {
-//   propName: string;
-//   condition: string;
-//   value: string | number;
-// }
-
 export interface Rule {
   id: string;
   description?: string;
@@ -42,7 +37,6 @@ export interface Rule {
   maxPeriod: Period;
   updatePeriod: Period;
   condition: string;
-  // conditions: Condition[];
 }
 
 export class Badges {
@@ -64,6 +58,7 @@ export class Badges {
     this.data.systemProps.isNewYear = false;
     this.data.systemProps.isNewMonth = false;
     this.data.systemProps.isNewDay = false;
+    this.data.systemProps.isNewHour = false;
     this.data.systemProps.isNewWeek = false;
     this.data.systemProps.isNewSession = false;
     this.data.systemProps.isNewGame = false;
@@ -76,14 +71,10 @@ export class Badges {
     this.initPeriodTime(Period.Year);
     this.initPeriodTime(Period.Month);
     this.initPeriodTime(Period.Day);
+    this.initPeriodTime(Period.Hour);
     this.initPeriodTime(Period.Week);
     this.initPeriodCounter(Period.Session);
     this.initPeriodCounter(Period.Game);
-
-    // this.initPeriodYear();
-    // this.initPeriodMonth();
-    // this.initPeriodDay();
-    // this.initPeriodWeek();
   }
 
   private initPeriodGlobal() {
@@ -125,66 +116,6 @@ export class Badges {
     }
   }
 
-  //   private initPeriodYear() {
-  //     const yearKey = this.data.periods?.[Period.Year]?.key;
-  //     const newKey = this.getKeyPeriodYear();
-
-  //     if (!yearKey || yearKey !== newKey) {
-  //       this.data.periods![Period.Year] = {
-  //         key: newKey,
-  //         lastTimestamp: DateTime.utc().toISO(),
-  //       };
-  //     }
-
-  //     //     if (!this.data.periods?.[Period.Year]) {
-  //     //         const yearKey = this.data.periods?.[Period.Year]?.key;
-  //     //         const newKey = this.getKeyPeriodYear();
-
-  //     //         if (!yearKey || yearKey !== newKey) {
-  //     //             this.data.periods![Period.Year] = {
-  //     //                 key: newKey,
-  //     //                 lastTimestamp: DateTime.utc().toISO()
-  //     //             }
-  //     //         }
-  //     //     }
-  //   }
-
-  //   private initPeriodMonth() {
-  //     const monthKey = this.data.periods?.[Period.Month]?.key;
-  //     const newKey = this.getKeyPeriodMonth();
-
-  //     if (!monthKey || monthKey !== newKey) {
-  //       this.data.periods![Period.Month] = {
-  //         key: newKey,
-  //         lastTimestamp: DateTime.utc().toISO(),
-  //       };
-  //     }
-  //   }
-
-  //   private initPeriodDay() {
-  //     const dayKey = this.data.periods?.[Period.Day]?.key;
-  //     const newKey = this.getKeyPeriodDay();
-
-  //     if (!dayKey || dayKey !== newKey) {
-  //       this.data.periods![Period.Day] = {
-  //         key: newKey,
-  //         lastTimestamp: DateTime.utc().toISO(),
-  //       };
-  //     }
-  //   }
-
-  //   private initPeriodWeek() {
-  //     const weekKey = this.data.periods?.[Period.Week]?.key;
-  //     const newKey = this.getKeyPeriodWeek();
-
-  //     if (!weekKey || weekKey !== newKey) {
-  //       this.data.periods![Period.Week] = {
-  //         key: newKey,
-  //         lastTimestamp: DateTime.utc().toISO(),
-  //       };
-  //     }
-  //   }
-
   private getKeyPeriodCounter(count: number): string {
     return String(count).padStart(10, '0');
   }
@@ -197,6 +128,8 @@ export class Badges {
         return date.toFormat('yyyy-MM');
       case Period.Day:
         return date.toFormat('yyyy-MM-dd');
+      case Period.Hour:
+        return date.toFormat("yyyy-MM-dd-'H'HH");
       case Period.Week:
         return date.toFormat("yyyy-'W'WW");
 
@@ -204,22 +137,6 @@ export class Badges {
         return '';
     }
   }
-
-  //   private getKeyPeriodYear(): string {
-  //     return DateTime.now().setZone(this.timeZone).toFormat('yyyy');
-  //   }
-
-  //   private getKeyPeriodMonth(): string {
-  //     return DateTime.now().setZone(this.timeZone).toFormat('yyyy-MM');
-  //   }
-
-  //   private getKeyPeriodDay(): string {
-  //     return DateTime.now().setZone(this.timeZone).toFormat('yyyy-MM-dd');
-  //   }
-
-  //   private getKeyPeriodWeek(): string {
-  //     return DateTime.now().setZone(this.timeZone).toFormat("yyyy-'W'WW");
-  //   }
 
   getRules() {
     return this.rules;
@@ -235,19 +152,19 @@ export class Badges {
     return this.data;
   }
 
-  setValue(propName: string, value: string | number | boolean, skipEval: boolean = false) {
+  setValue(propName: string, value: string | number | boolean, skipEval = false) {
     this.data.props[propName] = value;
 
     if (!skipEval) {
       this.evaluate();
-    }    
+    }
   }
 
   evaluate() {
     const date = DateTime.now().setZone(this.timeZone);
-    this.preparePeriodTimeProps(date);
+    this.prepareSystemProps(date);
 
-    const context:any = Object.assign({}, this.data.props);
+    const context: any = Object.assign({}, this.data.props);
     context.system = this.data.systemProps;
 
     for (const rule of this.rules) {
@@ -260,10 +177,11 @@ export class Badges {
     }
   }
 
-  private preparePeriodTimeProps(date: DateTime) {
+  private prepareSystemProps(date: DateTime) {
     const yearKey = this.getKeyPeriodTime(Period.Year, date);
     const monthKey = this.getKeyPeriodTime(Period.Month, date);
     const dayKey = this.getKeyPeriodTime(Period.Day, date);
+    const hourKey = this.getKeyPeriodTime(Period.Hour, date);
     const weekKey = this.getKeyPeriodTime(Period.Week, date);
 
     if (this.data.periods![Period.Year].key !== yearKey) {
@@ -281,10 +199,23 @@ export class Badges {
       this.data.periods![Period.Day] = { key: dayKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
+    if (this.data.periods![Period.Hour].key !== hourKey) {
+      this.data.systemProps.isNewHour = true;
+      this.data.periods![Period.Hour] = { key: hourKey, lastTimestamp: DateTime.utc().toISO() };
+    }
+
     if (this.data.periods![Period.Week].key !== weekKey) {
       this.data.systemProps.isNewWeek = true;
       this.data.periods![Period.Week] = { key: weekKey, lastTimestamp: DateTime.utc().toISO() };
     }
+
+    this.data.systemProps.date = date.toFormat('yyyy-MM-dd');
+    this.data.systemProps.time = date.toFormat('HH:mm');
+
+    const dayOfWeek = Number(date.toFormat('E')); // 1-7 (Monday is 1, Sunday is 7)
+    this.data.systemProps.dayOfWeek = dayOfWeek;
+    this.data.systemProps.isWeekDay = dayOfWeek <= 5;
+    this.data.systemProps.isWeekEnd = dayOfWeek > 5;
   }
 
   startSession() {
