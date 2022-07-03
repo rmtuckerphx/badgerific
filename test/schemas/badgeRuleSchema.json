@@ -1,0 +1,83 @@
+{
+  "$id": "BadgeRuleSchema",
+  "description": "Schema for Badge Rules",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": [
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "active": {
+          "type": "boolean"
+        },
+        "rewards": {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
+            }
+          ]
+        },
+        "max": {
+          "type": "integer"
+        },
+        "maxPeriod": {
+          "type": "string",
+          "enum": [
+            "GLOBAL",
+            "SESSION",
+            "GAME",
+            "DAY",
+            "WEEK",
+            "MONTH",
+            "YEAR"
+          ]
+        },
+        "updatePeriod": {
+          "type": "string",
+          "enum": [
+            "GLOBAL",
+            "SESSION",
+            "GAME",
+            "DAY",
+            "WEEK",
+            "MONTH",
+            "YEAR"
+          ]
+        },
+        "condition": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "active",
+        "max",
+        "maxPeriod",
+        "updatePeriod",
+        "condition"
+      ]
+    }
+  ]
+}

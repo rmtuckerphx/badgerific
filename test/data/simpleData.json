@@ -1,0 +1,37 @@
+{
+    "props": {
+        "prop1": 1,
+        "prop2": true,
+        "prop3": "p3"
+    },
+    "periods": {
+        "GLOBAL": {
+            "key": "GLOBAL",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        },
+        "YEAR": {
+            "key": "2022",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        },
+        "MONTH": {
+            "key": "2022-07",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        },
+        "DAY": {
+            "key": "2022-07-02",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        },
+        "WEEK": {
+            "key": "2022-26",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        },
+        "SESSION": {
+            "key": "S22",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        },
+        "GAME": {
+            "key": "G43",
+            "lastTimestamp": "2000-01-01T00:00:00.000Z"
+        }
+    }
+}
