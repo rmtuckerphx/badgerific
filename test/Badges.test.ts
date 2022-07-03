@@ -1,12 +1,18 @@
+import { DateTime } from 'luxon';
 import { Badges, Period, Rule } from '../src/Badges';
 import emptyData from './data/emptyData.json';
 import testData from './data/simpleData.json';
 import testRules from './data/simpleRules.json';
+import * as mockHelpers from './mockHelpers';
 
 const tz = 'America/Phoenix';
 
 describe('Badges', () => {
   // beforeEach(async () => {});
+
+  afterEach(async () => {
+    mockHelpers.cleanTimekeeper();
+  });
 
   test('toJson() should return value passed to setData() plus initialized values', () => {
     const badges = new Badges(testRules as Rule[], tz);
@@ -83,6 +89,9 @@ describe('Badges', () => {
   });
 
   test('evaluate() should set period time values', () => {
+    const time = DateTime.utc(2022, 7, 3, 1, 15).toJSDate();
+    mockHelpers.mockTimeTravel(time);
+
     const badges = new Badges(testRules as Rule[], tz);
 
     badges.setData(emptyData);
@@ -102,10 +111,10 @@ describe('Badges', () => {
     expect(result.periods![Period.Month].key).toEqual('2022-07');
     expect(result.periods![Period.Month].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
 
-    expect(result.periods![Period.Day].key).toEqual('2022-07-03');
+    expect(result.periods![Period.Day].key).toEqual('2022-07-02');
     expect(result.periods![Period.Day].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
 
-    expect(result.periods![Period.Hour].key).toEqual('2022-07-03-H08');
+    expect(result.periods![Period.Hour].key).toEqual('2022-07-02-H18');
     expect(result.periods![Period.Hour].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
 
     expect(result.periods![Period.Week].key).toEqual('2022-W26');
