@@ -4,16 +4,45 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
     "properties": {
+        "props": {
+            "$ref": "#/definitions/Props"
+        },
         "systemProps": {
             "$ref": "#/definitions/Props"
         },
-        "props": {
-            "$ref": "#/definitions/Props"
+        "periods": {
+            "type": "object"
+        },
+        "earned": {
+            "type": "array",
+            "items": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string"
+                        },
+                        "lastEarned": {
+                            "type": "string"
+                        },
+                        "count": {
+                            "type": "integer"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "lastEarned",
+                        "count"
+                    ]
+                }
+            ]
         }
     },
     "required": [
         "systemProps",
-        "props"
+        "props",
+        "earned",
+        "periods"
     ],
     "definitions": {
         "Props": {

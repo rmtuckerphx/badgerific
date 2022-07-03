@@ -17,10 +17,17 @@ export interface PeriodData {
   lastTimestamp: string;
 }
 
+export interface EarnedBadge {
+  id: string;
+  lastEarned: string;
+  count: number;
+}
+
 export interface BadgeData {
   systemProps: Record<string, string | number | boolean>;
   props: Record<string, string | number | boolean>;
   periods?: Record<Period | string, PeriodData>;
+  earned: EarnedBadge[];
 }
 
 export interface Reward {
@@ -34,7 +41,6 @@ export interface Rule {
   active: boolean;
   rewards?: Reward[];
   max?: number;
-  maxPeriod: Period;
   updatePeriod: Period;
   condition: string;
 }
@@ -47,12 +53,15 @@ export class Badges {
     systemProps: {},
     props: {},
     periods: {},
+    earned: [],
   };
 
   constructor(rules: Rule[], timeZone?: string) {
     this.rules = rules;
     this.timeZone = timeZone ?? 'UTC';
   }
+
+  onBadgeEarned?: (badge: EarnedBadge) => void;
 
   private init() {
     this.data.systemProps.isNewYear = false;
@@ -143,7 +152,8 @@ export class Badges {
   }
 
   setData(data: BadgeData) {
-    this.data = Object.assign({}, data);
+    // deep clone
+    this.data = JSON.parse(JSON.stringify(data, null, 2))
 
     this.init();
   }
@@ -170,9 +180,53 @@ export class Badges {
     for (const rule of this.rules) {
       if (rule.active) {
         const success = jexl.evalSync(rule.condition, context);
-        // const exp = jexl.createExpression(rule.condition);
-        // const success = exp.evalSync(this.data.props);
-        console.log({ success });
+
+        if (success) {
+          this.saveEarnedBadge(rule);
+        }
+      }
+    }
+  }
+
+  private saveEarnedBadge(rule: Rule) {
+    const found = this.data.earned.find((b: { id: string }) => b.id === rule.id);
+
+    if (!found) {
+      const newBadge: EarnedBadge = {
+        id: rule.id,
+        lastEarned: DateTime.utc().toISO(),
+        count: 1,
+      };
+
+      this.data.earned.push(newBadge);
+
+      if (this.onBadgeEarned) {
+        this.onBadgeEarned(newBadge);
+      }
+    } else {
+      // can only update once per updatePeriod
+      const canUpdate = this.data.periods![rule.updatePeriod].lastTimestamp > found.lastEarned;
+      if (!canUpdate) {
+        return;
+      }
+
+      if (rule.max) {
+        if (found.count < rule.max) {
+          found.count += 1;
+          found.lastEarned = DateTime.utc().toISO();
+
+          if (this.onBadgeEarned) {
+            this.onBadgeEarned(found);
+          }
+        }
+      } else {
+        // unlimited
+        found.count += 1;
+        found.lastEarned = DateTime.utc().toISO();
+
+        if (this.onBadgeEarned) {
+          this.onBadgeEarned(found);
+        }
       }
     }
   }
@@ -220,6 +274,7 @@ export class Badges {
 
   startSession() {
     this.data.systemProps.isNewSession = true;
+
     const count = Number(this.data.periods![Period.Session].key);
     this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Session].lastTimestamp = DateTime.utc().toISO();
@@ -227,6 +282,7 @@ export class Badges {
 
   startGame() {
     this.data.systemProps.isNewGame = true;
+
     const count = Number(this.data.periods![Period.Game].key);
     this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();

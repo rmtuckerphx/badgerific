@@ -42,18 +42,6 @@
         "max": {
           "type": "integer"
         },
-        "maxPeriod": {
-          "type": "string",
-          "enum": [
-            "GLOBAL",
-            "SESSION",
-            "GAME",
-            "DAY",
-            "WEEK",
-            "MONTH",
-            "YEAR"
-          ]
-        },
         "updatePeriod": {
           "type": "string",
           "enum": [
@@ -61,6 +49,7 @@
             "SESSION",
             "GAME",
             "DAY",
+            "HOUR",
             "WEEK",
             "MONTH",
             "YEAR"
@@ -73,7 +62,6 @@
       "required": [
         "id",
         "active",
-        "maxPeriod",
         "updatePeriod",
         "condition"
       ]

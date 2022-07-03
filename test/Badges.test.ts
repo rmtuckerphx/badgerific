@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { Badges, Period, Rule } from '../src/Badges';
+import { Badges, EarnedBadge, Period, Rule } from '../src/Badges';
 import emptyData from './data/emptyData.json';
 import testData from './data/simpleData.json';
 import testRules from './data/simpleRules.json';
@@ -62,7 +62,32 @@ describe('Badges', () => {
     const result = badges.toJson();
 
     expect(result.props.gameCount).toEqual(1);
+    expect(result.earned.length).toEqual(1);
+    expect(result.earned[0].id).toEqual('b01');
+    expect(result.earned[0].count).toEqual(1);
   });
+
+  test('multiple setValue of gameCount to 1 should earn b01 badge only once', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let earnedCounter = 0;
+
+    badges.onBadgeEarned = (badge: EarnedBadge) => {
+      earnedCounter++;
+    };
+    
+    badges.setData(emptyData);
+    badges.setValue('gameCount', 1);
+    badges.setValue('gameCount', 1);
+
+    const result = badges.toJson();
+
+    expect(result.props.gameCount).toEqual(1);
+    expect(result.earned.length).toEqual(1);
+    expect(result.earned[0].id).toEqual('b01');
+    expect(result.earned[0].count).toEqual(1);
+    expect(earnedCounter).toEqual(1);
+  });
+
 
   test('startSession should set values', () => {
     const badges = new Badges(testRules as Rule[], tz);
