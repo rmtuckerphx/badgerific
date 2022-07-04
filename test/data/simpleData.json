@@ -39,5 +39,8 @@
             "lastTimestamp": "2000-01-01T00:00:00.000Z"
         }
     },
-    "earned": []
+    "earned": [],
+    "bookmarks": {
+        "mark1": "2000-01-01T00:00:00.000Z"
+    }
 }

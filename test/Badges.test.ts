@@ -301,4 +301,120 @@ describe('Badges', () => {
     expect(result.periods![Period.Week].key).toEqual('2022-W26');
     expect(result.periods![Period.Week].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
   });
+
+  test('getValue() returns default integer', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    const value = badges.getValue('prop1', 22);
+
+    expect(value).toEqual(22);
+  });
+
+  test('getValue() returns default boolean', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    const value = badges.getValue('prop1', true);
+
+    expect(value).toEqual(true);
+  });
+
+  test('getValue() returns default string', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    const value = badges.getValue('prop1', 'test');
+
+    expect(value).toEqual('test');
+  });
+
+
+  test('getValue() returns setValue() integer', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    badges.setValue('prop1', 2);
+    const value = badges.getValue('prop1', 22);
+
+    expect(value).toEqual(2);
+  });
+
+  test('getValue() returns setValue() boolean', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    badges.setValue('prop1', false);
+    const value = badges.getValue('prop1', true);
+
+    expect(value).toEqual(false);
+  });
+
+  test('getValue() returns setValue() string', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(emptyData);
+    badges.setValue('prop1', 'hello');
+    const value = badges.getValue('prop1', 'test');
+
+    expect(value).toEqual('hello');
+  });
+
+  test('bookmark should return multiple badges earned across multiple games', () => {
+
+    // create rule that only updates once per game
+    const rules: Rule[] = [
+      {
+        id: 'r1',
+        active: true,
+        updatePeriod: Period.Game,
+        condition: 'prop1 > 0',
+      },
+      {
+        id: 'r2',
+        active: true,
+        updatePeriod: Period.Game,
+        condition: 'prop2 > 0',
+      },
+
+    ];
+
+    const badges = new Badges(rules, tz);
+    let newBadges: EarnedBadge[] = [];
+
+    badges.setData(emptyData);
+    
+    badges.setBookmark('mark1');
+
+    // start game 1
+    badges.startGame();
+    newBadges = badges.addValue('prop1', 1);
+
+    expect(newBadges.length).toEqual(1);
+    expect(newBadges[0].id).toEqual('r1');
+    expect(newBadges[0].count).toEqual(1);
+
+    // start game 2
+    badges.startGame();
+    newBadges = badges.addValue('prop2', 1);
+
+    console.log({newBadges});
+
+    expect(newBadges.length).toEqual(2);
+    expect(newBadges[0].id).toEqual('r1');
+    expect(newBadges[0].count).toEqual(2);
+    expect(newBadges[1].id).toEqual('r2');
+    expect(newBadges[1].count).toEqual(1);
+
+    newBadges = badges.getEarnedBadgesSinceBookmark('mark1');
+
+    expect(newBadges.length).toEqual(2);
+    expect(newBadges[0].id).toEqual('r1');
+    expect(newBadges[0].count).toEqual(2);
+    expect(newBadges[1].id).toEqual('r2');
+    expect(newBadges[1].count).toEqual(1);
+
+  });
+
 });
+

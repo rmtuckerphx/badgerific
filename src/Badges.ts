@@ -28,6 +28,7 @@ export interface BadgeData {
   props: Record<string, string | number | boolean>;
   periods?: Record<Period | string, PeriodData>;
   earned: EarnedBadge[];
+  bookmarks: Record<string, string>;
 }
 
 export interface Reward {
@@ -54,6 +55,7 @@ export class Badges {
     props: {},
     periods: {},
     earned: [],
+    bookmarks: {},
   };
 
   constructor(rules: Rule[], timeZone?: string) {
@@ -162,6 +164,10 @@ export class Badges {
     return this.data;
   }
 
+  getValue(propName: string, defaultValue: string | number | boolean): string | number | boolean {
+    return this.data.props[propName] ?? defaultValue;
+  }
+
   setValue(propName: string, value: string | number | boolean, skipEval = false): EarnedBadge[] {
     const lastTimestamp = DateTime.utc().toISO();
 
@@ -177,6 +183,7 @@ export class Badges {
 
   addValue(propName: string, value = 1, skipEval = false): EarnedBadge[] {
     const lastTimestamp = DateTime.utc().toISO();
+    console.log({lastTimestamp});
     const oldValue = Number(this.data.props[propName] ?? 0);
 
     if (typeof oldValue === 'number') {
@@ -327,8 +334,22 @@ export class Badges {
     return badges;
   }
 
+  getEarnedBadgesSinceBookmark(name: string): EarnedBadge[] {
+    const lastTimestamp = this.data.bookmarks?.[name];
+    return lastTimestamp ? this.getEarnedBadgesSince(lastTimestamp) : [];
+  }
+
+  setBookmark(name: string): string {
+    const now = DateTime.utc().toISO();
+
+    this.data.bookmarks[name] = now;
+
+    return now;
+  }
+
   startSession() {
     this.data.systemProps.isNewSession = true;
+    this.data.bookmarks = {};
 
     const count = Number(this.data.periods![Period.Session].key);
     this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
@@ -342,6 +363,4 @@ export class Badges {
     this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();
   }
-
-  endSession() {}
 }
