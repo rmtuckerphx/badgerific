@@ -57,12 +57,16 @@ describe('Badges', () => {
     const badges = new Badges(testRules as Rule[], tz);
 
     badges.setData(emptyData);
-    badges.setValue('gameCount', 1);
+    const newBadges = badges.setValue('gameCount', 1);
 
     const earned = badges.getEarnedBadges();
     const result = badges.toJson();
 
     expect(result.props.gameCount).toEqual(1);
+
+    expect(newBadges.length).toEqual(1);
+    expect(newBadges[0].id).toEqual('b01');
+    expect(newBadges[0].count).toEqual(1);
 
     expect(earned.length).toEqual(1);
     expect(earned[0].id).toEqual('b01');
@@ -73,17 +77,27 @@ describe('Badges', () => {
     expect(result.earned[0].count).toEqual(1);
   });
 
-  test('multiple setValue of gameCount to 1 should earn b01 badge only once', () => {
+  test('multiple setValue of gameCount to 1 should earn b01 badge only once', async () => {
     const badges = new Badges(testRules as Rule[], tz);
     let earnedCounter = 0;
+    let newBadges: EarnedBadge[] = [];
 
     badges.onBadgeEarned = (badge: EarnedBadge) => {
       earnedCounter++;
     };
 
     badges.setData(emptyData);
-    badges.setValue('gameCount', 1);
-    badges.setValue('gameCount', 1);
+    newBadges = badges.setValue('gameCount', 1);
+
+    expect(newBadges.length).toEqual(1);
+    expect(newBadges[0].id).toEqual('b01');
+    expect(newBadges[0].count).toEqual(1);
+
+    await mockHelpers.sleep(100);
+
+    newBadges = badges.setValue('gameCount', 1);
+
+    expect(newBadges.length).toEqual(0);
 
     const earned = badges.getEarnedBadges();
     const result = badges.toJson();
@@ -101,17 +115,28 @@ describe('Badges', () => {
     expect(earnedCounter).toEqual(1);
   });
 
-  test('multiple addValue of gameCount to 1 should earn b01 badge only once', () => {
+  test('multiple addValue of gameCount by 1 should earn b01 badge only once', async () => {
     const badges = new Badges(testRules as Rule[], tz);
     let earnedCounter = 0;
+    let newBadges: EarnedBadge[] = [];
 
     badges.onBadgeEarned = (badge: EarnedBadge) => {
       earnedCounter++;
     };
 
     badges.setData(emptyData);
-    badges.addValue('gameCount', 1);
-    badges.addValue('gameCount');
+    
+    newBadges = badges.addValue('gameCount', 1);
+
+    expect(newBadges.length).toEqual(1);
+    expect(newBadges[0].id).toEqual('b01');
+    expect(newBadges[0].count).toEqual(1);
+
+    await mockHelpers.sleep(100);
+
+    newBadges = badges.addValue('gameCount');
+
+    expect(newBadges.length).toEqual(0);
 
     const earned = badges.getEarnedBadges();
     const result = badges.toJson();
@@ -129,7 +154,7 @@ describe('Badges', () => {
     expect(earnedCounter).toEqual(1);
   });
 
-  test('multiple addValue across sessions should earn badge only once per session', () => {
+  test('multiple addValue across sessions should earn badge only once per session', async () => {
     
     // create rule that only updates once per session
     const rules: Rule[] = [
@@ -144,6 +169,7 @@ describe('Badges', () => {
     const badges = new Badges(rules, tz);
     let earnedCounter = 0;
     let earned: EarnedBadge[];
+    let newBadges: EarnedBadge[] = [];
 
     badges.onBadgeEarned = (badge: EarnedBadge) => {
       earnedCounter++;
@@ -155,8 +181,17 @@ describe('Badges', () => {
     badges.startSession();
 
     // add value twice, only 1 is updated due to session period
-    badges.addValue('prop1');
-    badges.addValue('prop1');
+    newBadges = badges.addValue('prop1');
+
+    expect(newBadges.length).toEqual(1);
+    expect(newBadges[0].id).toEqual('r1');
+    expect(newBadges[0].count).toEqual(1);
+
+    await mockHelpers.sleep(100);
+
+    newBadges = badges.addValue('prop1');
+
+    expect(newBadges.length).toEqual(0);
 
     // get badges earned during session 1
     earned = badges.getEarnedBadges(Period.Session);
@@ -245,6 +280,11 @@ describe('Badges', () => {
     expect(result.systemProps.isNewDay).toEqual(true);
     expect(result.systemProps.isNewHour).toEqual(true);
     expect(result.systemProps.isNewWeek).toEqual(true);
+    expect(result.systemProps.isWeekDay).toEqual(false);
+    expect(result.systemProps.isWeekEnd).toEqual(true);
+    expect(result.systemProps.dayOfWeek).toEqual(6);
+    expect(result.systemProps.date).toEqual('2022-07-02');
+    expect(result.systemProps.time).toEqual('18:15');
 
     expect(result.periods![Period.Year].key).toEqual('2022');
     expect(result.periods![Period.Year].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);

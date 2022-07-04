@@ -9,6 +9,9 @@ export function mockTimeTravel(timeToMock) {
 }
 
 export function cleanTimekeeper() {
-    tk.reset();
-  }
-  
+  tk.reset();
+}
+
+export function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

@@ -162,15 +162,21 @@ export class Badges {
     return this.data;
   }
 
-  setValue(propName: string, value: string | number | boolean, skipEval = false) {
+  setValue(propName: string, value: string | number | boolean, skipEval = false): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
+
     this.data.props[propName] = value;
 
     if (!skipEval) {
       this.evaluate();
+      return this.getEarnedBadgesSince(lastTimestamp);
     }
+
+    return [];
   }
 
-  addValue(propName: string, value = 1, skipEval = false) {
+  addValue(propName: string, value = 1, skipEval = false): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
     const oldValue = Number(this.data.props[propName] ?? 0);
 
     if (typeof oldValue === 'number') {
@@ -182,10 +188,14 @@ export class Badges {
 
     if (!skipEval) {
       this.evaluate();
+      return this.getEarnedBadgesSince(lastTimestamp);
     }
+
+    return [];
   }
 
-  subtractValue(propName: string, value = 1, skipEval = false) {
+  subtractValue(propName: string, value = 1, skipEval = false): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
     const oldValue = Number(this.data.props[propName] ?? 0);
 
     if (typeof oldValue === 'number') {
@@ -197,7 +207,10 @@ export class Badges {
 
     if (!skipEval) {
       this.evaluate();
+      return this.getEarnedBadgesSince(lastTimestamp);
     }
+
+    return [];
   }
 
   evaluate() {
@@ -302,21 +315,16 @@ export class Badges {
     this.data.systemProps.isWeekEnd = dayOfWeek > 5;
   }
 
-  // getAllEarnedBadges(): EarnedBadge[] {
-  //   const dateMin = new Date(0).toISOString();
-  //   return this.getEarnedBadgesSince(dateMin);
-  // }
-
   getEarnedBadges(period: Period = Period.Global): EarnedBadge[] {
     const lastTimestamp = this.data.periods![period].lastTimestamp;
+    return this.getEarnedBadgesSince(lastTimestamp);
+  }
+
+  getEarnedBadgesSince(lastTimestamp: string): EarnedBadge[] {
     const badges = this.data.earned.filter((b) => {
       return b.lastEarned >= lastTimestamp;
     });
     return badges;
-
-    // const found = this.data.earned.find((b: { id: string }) => b.id === rule.id);
-    // const dateMin = new Date(0).toISOString();
-    // return this.getEarnedBadgesSince(dateMin);
   }
 
   startSession() {
