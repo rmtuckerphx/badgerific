@@ -31,16 +31,10 @@ export interface BadgeData {
   bookmarks: Record<string, string>;
 }
 
-export interface Reward {
-  name: string;
-  value: number | string;
-}
-
 export interface Rule {
   id: string;
   description?: string;
   active: boolean;
-  rewards?: Reward[];
   max?: number;
   updatePeriod: Period;
   condition: string;
@@ -128,7 +122,7 @@ export class Badges {
   }
 
   private getKeyPeriodCounter(count: number): string {
-    return String(count).padStart(10, '0');
+    return String(count).padStart(16, '0');
   }
 
   private getKeyPeriodTime(period: Period, date: DateTime): string {

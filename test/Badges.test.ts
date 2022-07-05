@@ -46,10 +46,10 @@ describe('Badges', () => {
     expect(result.periods![Period.Week].key).toEqual('1970-W01');
     expect(result.periods![Period.Week].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
 
-    expect(result.periods![Period.Session].key).toEqual('0000000000');
+    expect(result.periods![Period.Session].key).toEqual('0000000000000000');
     expect(result.periods![Period.Session].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
 
-    expect(result.periods![Period.Game].key).toEqual('0000000000');
+    expect(result.periods![Period.Game].key).toEqual('0000000000000000');
     expect(result.periods![Period.Game].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
   });
 
@@ -248,7 +248,7 @@ describe('Badges', () => {
     const result = badges.toJson();
 
     expect(result.systemProps.isNewSession).toEqual(true);
-    expect(result.periods![Period.Session].key).toEqual('0000000001');
+    expect(result.periods![Period.Session].key).toEqual('0000000000000001');
   });
 
   test('startGame should set values', () => {
@@ -260,7 +260,7 @@ describe('Badges', () => {
     const result = badges.toJson();
 
     expect(result.systemProps.isNewGame).toEqual(true);
-    expect(result.periods![Period.Game].key).toEqual('0000000001');
+    expect(result.periods![Period.Game].key).toEqual('0000000000000001');
   });
 
   test('evaluate() should set period time values', () => {

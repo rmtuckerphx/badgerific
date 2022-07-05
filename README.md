@@ -29,9 +29,6 @@ import rules from './badgeRules.json';
 const badges = new Badges(rules);
 ```
 
-
-## Usage
-
 ## Concepts
 
 ### Locale
@@ -47,6 +44,8 @@ const badges = new Badges(rules, tz);
 
 The data about which badges were earned and the current state of properties and bookmarks are stored external to the library.
 
+It is important that `badges.setData()` is called before any other method on `badges`.
+
 ```js
 // set badge data
 badges.setData(badgeData);
@@ -57,7 +56,7 @@ const data = badges.toJson();
 
 ### Periods (Timeline)
 
-![Periods]('docs/images/timeline-periods.jpg')
+![Periods](docs/images/timeline-periods.jpg)
 
 The periods are:
 - **Global** - From January 1, 1970 to present to all future dates.
@@ -69,6 +68,13 @@ The periods are:
 - **Session** - A user's session. Can span border between hours, days, weeks, months, or years. Starts with `badges.startSession()`. A session can have multiple games.
 - **Game** - A game. Can span border between hours, days, weeks, months, or years. Starts with `badges.startGame()`. A game cannot span sessions.
 
+Each time the `badges.evaluate()` method is called, a check is made to determine if any of the time-based periods are starting a new period. For example, is today a new day compared to the last time that `evaluate()` was called. This updates any system properties. See [Rules](#rules).
+
+Each time a new period starts, the ISO 8601 UTC value is stored for the period.
+
+Periods are used in the following ways:
+- In a rule to limit the period in which a badge can be earned.
+- As a filter to `badges.getEarnedBadges()` to list all badges earned for the current period.
 
 ### Rules
 
@@ -87,12 +93,150 @@ Rules are defined as JSON and passed to the constructor. Here is a sample rules 
 ]
 ```
 
-#### Properties
+#### Rule Properties
 - **id** (required) - Unique identifier of the rule.
 - **active** (required) - Only rules set to `true` are evaluated.
 - **condition** (required) - Conditional statement(s) to be evaluated. If condition is true, the badge is earned.
 - **updatePeriod** (required) - Each badge can be earned only once per period. Value: Global, Year, Month, Week, Day, Hour, Session, Game.
-- **max** (optional) - If set, the max count that the badge can be earned. If missing, no maximum.
+- **max** (optional) - If set, the max times that the badge can be earned. If missing, no maximum.
 - **description** (optional) - Internal description of the rule.
 
+#### Rule Condition
+
+The condition is evaluated by [Jexl](https://github.com/TomFrost/Jexl#all-the-details) and can consist of:
+- property or system property
+- operators
+- comparisons
+
+The expression must evaluate to `true` or `false`. If a property is used in a condition but it hasn't been defined, the expression will evaluate to `false`.
+
+**Custom Properties**
+
+The developer can define any property of type `number`, `boolean`, or `string` by passing the `propName` to `badges.setValue()`, `badges.addValue()` or `badges.subtractValue()`.
+
+```ts
+// set a property
+
+badges.setValue('prop1', 1);
+badges.setValue('prop2', true);
+badges.setValue('prop3', 'test');
+
+badges.addValue('prop4');
+badges.addValue('prop5', 1);
+badges.addValue('prop6', 2);
+
+badges.subtractValue('prop7');
+badges.subtractValue('prop8', 1);
+badges.subtractValue('prop9', 2);
+
+// get the value of a property or default
+const value = badges.getValue('prop1', 0);
+const value = badges.getValue('prop2', false);
+const value = badges.getValue('prop3', 'default value');
+```
+Any of the above methods has a `skipEval` parameter that you can set to `true` to skip the call to `evaluate()`. You would use this in those cases where multiple properties are set at the same time and you only want the evaluation to happen for the last property set/changed.
+
+A rule with the condition of `"gameCount == 1"` would match a property called with `badges.addValue('gameCount')`
+
+**System Properties**
+
+Some properties are defined by the system and can be used in a condition by using the `system.` prefix: `"system.isNewDay"`
+
+Here is a list of system properties:
+
+| Property | Value | Description |
+| -------- | ----- | ----------- |
+| system.isNewYear | boolean | Start of a new year. |
+| system.isNewMonth | boolean | Start of a new month. |
+| system.isNewWeek | boolean | Start of a new week. |
+| system.isNewDay | boolean | Start of a new day. |
+| system.isNewHour | boolean | Start of a new hour. |
+| system.date | string | Date in format: yyyy-MM-dd ex: "2022-07-04" |
+| system.time | string | Time in format: HH:mm ex: "18:15" |
+| system.dayOfWeek | number | 1-7 (Monday is 1, Sunday is 7) |
+| system.isWeekDay | boolean | Is current day Monday - Friday |
+| system.isWeekEnd | boolean | Is current day Saturday or Sunday |
+
+NOTE: The following system properties only return true on the first `badges.evaluate()` call when the new period starts: `isNewYear`, `isNewMonth`, `isNewWeek`, `isNewDay`, `isNewHour`. Don't use these in expressions that use other non-time-based properties.
+
+#### Rule Evaluation
+
+Rules are only evaluated when the `badges.evaluate()` method is called. In most cases you will not call this method directly. Whenever `badges.setValue()`, `badges.addValue()` or `badges.subtractValue()` is called then `evaluate()` is called unless `true` is passed to the `skipEval` parameter.
+
+On evaluation, every active rule is checked even if the condition doesn't include that property. If the condition is true, the `updatePeriod` is checked to see if the badge has been earned already since the start of the current period. If it has, then it will not be earned again. Finally, if the rule has set `max` then the count of the times a badge was earned is checked against this max value. If all thoses checks pass, the badge is earned.
+
+### Get Earned Badges
+
+To get a list of earned badges, call one of the following:
+- `badges.getEarnedBadges()` - all badges earned for this game in a player's lifetime. Same as `badges.getEarnedBadges(Period.Global)`.
+- `badges.getEarnedBadges(period: Period)` - all badges earned since the start of the current period of a certain period type. To get all the badges earned for the current, active game call: `badges.getEarnedBadges(Period.Game)`.
+- `badges.getEarnedBadges(lastTimestamp: string)` - all badges earned since a specific timestamp is ISO 8601 UTC format.
+- `badges.getEarnedBadgesSinceBookmark(name: string)` - all badges earned since a named timestamp bookmark. See [Bookmarks](#bookmarks).
+
+When you call `badges.setValue()`, `badges.addValue()` or `badges.subtractValue()` then any badges earned during that call are returned:
+
+```ts
+const earned = badges.setValue('prop1', 'test');
+
+const earned = badges.addValue('prop2');
+
+const earned = badges.subtractValue('prop3');
+```
+
+You can also set a callback that will be called whenever a badge is earned:
+
+```ts
+badges.onBadgeEarned = (badge: EarnedBadge) => {
+  // badge includes: id, lastEarned, count
+};
+```
+
+### Bookmarks
+
+To get a list of badges starting at a time other than those defined in by a period, use a bookmark. Bookmarks are meant to be temporary and are cleared at the start of each session.
+
+A bookmark is really just a named point in time. Here is an example of how to use a bookmark:
+
+```ts
+badges.setBookmark('mark1');
+
+// multiple actions; earn badge(s)
+
+const earned = badges.getEarnedBadgesSinceBookmark('mark1');
+```
+The value returned when setting a bookmark is the ISO 8601 UTC timestamp.
+
+### Badge Name and Rewards
+
+The badge system focuses on rules and keeping track of badges earned with associated custom properties. It is recommended that you create a `badges.json` file that includes info such as:
+
+- id - match id in this file with id in `rules.json`
+- badge name, description, image URL (UI)
+- any rewards (points, credits, coins) that are earned when the badge is earned
+
+This allows you to translate the badge info as needed and keeps it separate from the badge rules.
+
+Here is a sample:
+
+```json
+[
+  {
+    "id": "b01",
+    "name": "Let's Go!",
+    "description": "Earn this badge by finishing your first game.",
+    "imageUrl": "https://example.com/images/b01.png",
+    "sortId": "001",
+    "credits": "1"
+  },
+  {
+    "id": "b02",
+    "name": "New Year’s Eve",
+    "description": "Play a game on New Year's Eve.",
+    "imageUrl": "https://example.com/images/b02.png",
+    "sortId": "002",
+    "credits": "3"
+  }
+]
+
+```
 
