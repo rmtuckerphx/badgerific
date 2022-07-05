@@ -183,7 +183,6 @@ export class Badges {
 
   addValue(propName: string, value = 1, skipEval = false): EarnedBadge[] {
     const lastTimestamp = DateTime.utc().toISO();
-    console.log({lastTimestamp});
     const oldValue = Number(this.data.props[propName] ?? 0);
 
     if (typeof oldValue === 'number') {

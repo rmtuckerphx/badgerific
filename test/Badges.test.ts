@@ -125,7 +125,7 @@ describe('Badges', () => {
     };
 
     badges.setData(emptyData);
-    
+
     newBadges = badges.addValue('gameCount', 1);
 
     expect(newBadges.length).toEqual(1);
@@ -155,7 +155,6 @@ describe('Badges', () => {
   });
 
   test('multiple addValue across sessions should earn badge only once per session', async () => {
-    
     // create rule that only updates once per session
     const rules: Rule[] = [
       {
@@ -195,7 +194,7 @@ describe('Badges', () => {
 
     // get badges earned during session 1
     earned = badges.getEarnedBadges(Period.Session);
-    
+
     expect(earned.length).toEqual(1);
     expect(earned[0].id).toEqual('r1');
     expect(earned[0].count).toEqual(1);
@@ -302,6 +301,27 @@ describe('Badges', () => {
     expect(result.periods![Period.Week].lastTimestamp > '1970-01-01T00:00:00.000Z').toEqual(true);
   });
 
+  test('evaluate() property that is not set should succeed', () => {
+    // create rule that only updates once per session
+    const rules: Rule[] = [
+      {
+        id: 'r1',
+        active: true,
+        updatePeriod: Period.Session,
+        condition: 'prop1 > 0',
+      },
+    ];
+
+    const badges = new Badges(rules, tz);
+    badges.setData(emptyData);
+    badges.evaluate();
+
+    const result = badges.toJson();
+
+    expect(result.props.prop1).toBeUndefined();
+    expect(result.earned.length).toEqual(0);
+  });
+
   test('getValue() returns default integer', () => {
     const badges = new Badges(testRules as Rule[], tz);
 
@@ -328,7 +348,6 @@ describe('Badges', () => {
 
     expect(value).toEqual('test');
   });
-
 
   test('getValue() returns setValue() integer', () => {
     const badges = new Badges(testRules as Rule[], tz);
@@ -361,7 +380,6 @@ describe('Badges', () => {
   });
 
   test('bookmark should return multiple badges earned across multiple games', () => {
-
     // create rule that only updates once per game
     const rules: Rule[] = [
       {
@@ -376,14 +394,13 @@ describe('Badges', () => {
         updatePeriod: Period.Game,
         condition: 'prop2 > 0',
       },
-
     ];
 
     const badges = new Badges(rules, tz);
     let newBadges: EarnedBadge[] = [];
 
     badges.setData(emptyData);
-    
+
     badges.setBookmark('mark1');
 
     // start game 1
@@ -398,7 +415,7 @@ describe('Badges', () => {
     badges.startGame();
     newBadges = badges.addValue('prop2', 1);
 
-    console.log({newBadges});
+    console.log({ newBadges }); // TODO: remove
 
     expect(newBadges.length).toEqual(2);
     expect(newBadges[0].id).toEqual('r1');
@@ -413,8 +430,5 @@ describe('Badges', () => {
     expect(newBadges[0].count).toEqual(2);
     expect(newBadges[1].id).toEqual('r2');
     expect(newBadges[1].count).toEqual(1);
-
   });
-
 });
-
