@@ -280,6 +280,8 @@ export class Badges {
     const dayKey = this.getKeyPeriodTime(Period.Day, date);
     const hourKey = this.getKeyPeriodTime(Period.Hour, date);
     const weekKey = this.getKeyPeriodTime(Period.Week, date);
+    const lifetimeSessions = Number(this.data.periods![Period.Session].key);
+    const lifetimeGames = Number(this.data.periods![Period.Game].key);
 
     if (this.data.periods![Period.Year].key !== yearKey) {
       this.data.systemProps.isNewYear = true;
@@ -313,6 +315,9 @@ export class Badges {
     this.data.systemProps.dayOfWeek = dayOfWeek;
     this.data.systemProps.isWeekDay = dayOfWeek <= 5;
     this.data.systemProps.isWeekEnd = dayOfWeek > 5;
+
+    this.data.systemProps.lifetimeSessions = lifetimeSessions;
+    this.data.systemProps.lifetimeGames = lifetimeGames;
   }
 
   getEarnedBadges(period: Period = Period.Global): EarnedBadge[] {
@@ -340,20 +345,36 @@ export class Badges {
     return now;
   }
 
-  startSession() {
+  startSession(skipEval = false): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
     this.data.systemProps.isNewSession = true;
     this.data.bookmarks = {};
 
     const count = Number(this.data.periods![Period.Session].key);
     this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Session].lastTimestamp = DateTime.utc().toISO();
+
+    if (!skipEval) {
+      this.evaluate();
+      return this.getEarnedBadgesSince(lastTimestamp);
+    }
+
+    return [];
   }
 
-  startGame() {
+  startGame(skipEval = false): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
     this.data.systemProps.isNewGame = true;
 
     const count = Number(this.data.periods![Period.Game].key);
     this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();
+
+    if (!skipEval) {
+      this.evaluate();
+      return this.getEarnedBadgesSince(lastTimestamp);
+    }
+
+    return [];
   }
 }

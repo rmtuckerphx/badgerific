@@ -1,0 +1,34 @@
+[
+    {
+        "id": "b01",
+        "description": "First game",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "system.isNewGame && system.lifetimeGames == 1"
+    },
+    {
+        "id": "b02",
+        "description": "Fifth game",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "system.isNewGame && system.lifetimeGames == 5"
+    },
+    {
+        "id": "b03",
+        "description": "First game as a subscribed player",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "system.isNewGame && hasSubscription && subscribedGames == 1"
+    },
+    {
+        "id": "b04",
+        "description": "Play a game on New Year's Day",
+        "active": true,
+        "max": null,
+        "updatePeriod": "YEAR",
+        "condition": "system.isNewGame && system.date in ['2023-01-01', '2024-01-01']"
+    }
+]

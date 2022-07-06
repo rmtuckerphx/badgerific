@@ -156,6 +156,9 @@ Here is a list of system properties:
 | system.dayOfWeek | number | 1-7 (Monday is 1, Sunday is 7) |
 | system.isWeekDay | boolean | Is current day Monday - Friday |
 | system.isWeekEnd | boolean | Is current day Saturday or Sunday |
+| system.lifetimeSessions | number | Number of total sessions. |
+| system.lifetimeGames | number | Number of total games. |
+
 
 NOTE: The following system properties only return true on the first `badges.evaluate()` call when the new period starts: `isNewYear`, `isNewMonth`, `isNewWeek`, `isNewDay`, `isNewHour`. Don't use these in expressions that use other non-time-based properties.
 

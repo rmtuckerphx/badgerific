@@ -200,13 +200,13 @@ describe('Badges', () => {
     expect(earned[0].count).toEqual(1);
 
     // start session 2
-    badges.startSession();
+    earned = badges.startSession();
 
-    // no badges earned yet for session 2
-    earned = badges.getEarnedBadges(Period.Session);
-    expect(earned.length).toEqual(0);
+    expect(earned.length).toEqual(1);
+    expect(earned[0].id).toEqual('r1');
+    expect(earned[0].count).toEqual(2);
 
-    // add value during session 2
+    // add value during session 2, can't earn prop 2nd time in same session
     badges.addValue('prop1');
 
     // get badges earned during session 2
@@ -413,7 +413,9 @@ describe('Badges', () => {
 
     // start game 2
     badges.startGame();
-    newBadges = badges.addValue('prop2', 1);
+    badges.addValue('prop2', 1);
+
+    newBadges = badges.getEarnedBadges(Period.Game);
 
     console.log({ newBadges }); // TODO: remove
 
