@@ -12,6 +12,20 @@ export enum Period {
   Year = 'YEAR',
 }
 
+export enum GameEndReason {
+  Win = 'WIN',
+  Lose = 'LOSE',
+  Cancel = 'CANCEL',
+  GameStart = 'GAME_START',
+}
+
+export enum PeriodStatus {
+  None = 'NONE',
+  Started = 'STARTED',
+  Ended = 'ENDED',
+  InProgress = 'IN_PROGRESS',
+}
+
 export interface PeriodData {
   key: string;
   lastTimestamp: string;
@@ -58,6 +72,10 @@ export class Badges {
   }
 
   onBadgeEarned?: (badge: EarnedBadge) => void;
+  onSessionStart?: () => void;
+  onSessionEnd?: () => void;
+  onGameStart?: () => void;
+  onGameEnd?: (reason: GameEndReason) => void;
 
   private init() {
     this.data.systemProps.isNewYear = false;
@@ -66,7 +84,11 @@ export class Badges {
     this.data.systemProps.isNewHour = false;
     this.data.systemProps.isNewWeek = false;
     this.data.systemProps.isNewSession = false;
+    this.data.systemProps.isSessionEnded = false;
+    this.data.systemProps.sessionStatus = PeriodStatus.None;
     this.data.systemProps.isNewGame = false;
+    this.data.systemProps.isGameEnded = false;
+    this.data.systemProps.gameStatus = PeriodStatus.None;
 
     if (!this.data.periods) {
       this.data.periods = {};
@@ -345,36 +367,88 @@ export class Badges {
     return now;
   }
 
-  startSession(skipEval = false): EarnedBadge[] {
+  startSession(): EarnedBadge[] {
     const lastTimestamp = DateTime.utc().toISO();
+
+    const status = this.data.systemProps.sessionStatus ?? PeriodStatus.Started;
+    if (status === PeriodStatus.InProgress) {
+      this.endSession();
+    }
+
     this.data.systemProps.isNewSession = true;
+    this.data.systemProps.isSessionEnded = false;
+    this.data.systemProps.sessionStatus = PeriodStatus.Started;
     this.data.bookmarks = {};
+
+    if (this.onSessionStart) {
+      this.onSessionStart();
+    }
 
     const count = Number(this.data.periods![Period.Session].key);
     this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Session].lastTimestamp = DateTime.utc().toISO();
 
-    if (!skipEval) {
-      this.evaluate();
-      return this.getEarnedBadgesSince(lastTimestamp);
-    }
+    this.evaluate();
 
-    return [];
+    this.data.systemProps.isNewSession = false;
+    this.data.systemProps.sessionStatus = PeriodStatus.InProgress;
+    return this.getEarnedBadgesSince(lastTimestamp);
   }
 
-  startGame(skipEval = false): EarnedBadge[] {
+  endSession(): EarnedBadge[] {
     const lastTimestamp = DateTime.utc().toISO();
+
+    this.data.systemProps.isSessionEnded = true;
+    this.data.systemProps.sessionStatus = PeriodStatus.Ended;
+
+    if (this.onSessionEnd) {
+      this.onSessionEnd();
+    }
+
+    this.evaluate();
+
+    return this.getEarnedBadgesSince(lastTimestamp);
+  }
+
+  startGame(): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
+
+    const status = this.data.systemProps.gameStatus ?? PeriodStatus.Started;
+    if (status === PeriodStatus.InProgress) {
+      this.endGame(GameEndReason.GameStart);
+    }
+
     this.data.systemProps.isNewGame = true;
+    this.data.systemProps.isGameEnded = false;
+    this.data.systemProps.gameStatus = PeriodStatus.Started;
+
+    if (this.onGameStart) {
+      this.onGameStart();
+    }
 
     const count = Number(this.data.periods![Period.Game].key);
     this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();
 
-    if (!skipEval) {
-      this.evaluate();
-      return this.getEarnedBadgesSince(lastTimestamp);
+    this.evaluate();
+
+    this.data.systemProps.isNewGame = false;
+    this.data.systemProps.gameStatus = PeriodStatus.InProgress;
+    return this.getEarnedBadgesSince(lastTimestamp);
+  }
+
+  endGame(reason: GameEndReason): EarnedBadge[] {
+    const lastTimestamp = DateTime.utc().toISO();
+
+    this.data.systemProps.isGameEnded = true;
+    this.data.systemProps.gameStatus = PeriodStatus.Ended;
+    this.data.systemProps.gameEndReason = reason;
+
+    if (this.onGameEnd) {
+      this.onGameEnd(reason);
     }
 
-    return [];
+    this.evaluate();
+    return this.getEarnedBadgesSince(lastTimestamp);
   }
 }

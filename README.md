@@ -160,6 +160,13 @@ Here is a list of system properties:
 | system.isWeekEnd | boolean | Is current day Saturday or Sunday |
 | system.lifetimeSessions | number | Number of total sessions. |
 | system.lifetimeGames | number | Number of total games. |
+| system.isNewSession | boolean | Start of a session. |
+| system.isSessionEnd | boolean | End of a session. |
+| system.sessionStatus | string | 'NONE', 'STARTED', 'IN_PROGRESS', 'ENDED' |
+| system.isNewGame | boolean | Start of a game. |
+| system.isGameEnd | boolean | End of a game. |
+| system.gameStatus | string | 'NONE', 'STARTED', 'IN_PROGRESS', 'ENDED' |
+| system.gameEndReason | string | 'WIN', 'LOSE', 'CANCEL', 'GAME_START' |  
 
 
 NOTE: The following system properties only return true on the first `badges.evaluate()` call when the new period starts: `isNewYear`, `isNewMonth`, `isNewWeek`, `isNewDay`, `isNewHour`. Don't use these in expressions that use other non-time-based properties.

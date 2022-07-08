@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { Badges, EarnedBadge, Period, Rule } from '../src/Badges';
+import { Badges, EarnedBadge, GameEndReason, Period, PeriodStatus, Rule } from '../src/Badges';
 import emptyData from './data/emptyData.json';
 import testData from './data/simpleData.json';
 import testRules from './data/simpleRules.json';
@@ -26,7 +26,11 @@ describe('Badges', () => {
     expect(result.systemProps.isNewHour).toEqual(false);
     expect(result.systemProps.isNewWeek).toEqual(false);
     expect(result.systemProps.isNewSession).toEqual(false);
+    expect(result.systemProps.isSessionEnded).toEqual(false);
+    expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.None);
     expect(result.systemProps.isNewGame).toEqual(false);
+    expect(result.systemProps.isGameEnded).toEqual(false);
+    expect(result.systemProps.gameStatus).toEqual(PeriodStatus.None);
 
     expect(result.periods![Period.Global].key).toEqual('GLOBAL');
     expect(result.periods![Period.Global].lastTimestamp).toEqual('1970-01-01T00:00:00.000Z');
@@ -247,7 +251,10 @@ describe('Badges', () => {
 
     const result = badges.toJson();
 
-    expect(result.systemProps.isNewSession).toEqual(true);
+    expect(result.systemProps.isNewSession).toEqual(false);
+    expect(result.systemProps.isSessionEnded).toEqual(false);
+    expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.InProgress);
+
     expect(result.periods![Period.Session].key).toEqual('0000000000000001');
   });
 
@@ -259,7 +266,10 @@ describe('Badges', () => {
 
     const result = badges.toJson();
 
-    expect(result.systemProps.isNewGame).toEqual(true);
+    expect(result.systemProps.isNewGame).toEqual(false);
+    expect(result.systemProps.isGameEnded).toEqual(false);
+    expect(result.systemProps.gameStatus).toEqual(PeriodStatus.InProgress);
+
     expect(result.periods![Period.Game].key).toEqual('0000000000000001');
   });
 
@@ -433,4 +443,123 @@ describe('Badges', () => {
     expect(newBadges[1].id).toEqual('r2');
     expect(newBadges[1].count).toEqual(1);
   });
+
+  test('startSession() and endSession() call callbacks', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let startCounter = 0;
+    let endCounter = 0;
+
+    badges.onSessionStart = () => {
+      startCounter++;
+    };
+
+    badges.onSessionEnd = () => {
+      endCounter++;
+    };
+    
+    badges.setData(emptyData);
+    badges.startSession();
+    badges.endSession();
+
+    const result = badges.toJson();
+
+    expect(result.systemProps.isSessionEnded).toEqual(true);
+    expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.Ended);
+    expect(result.systemProps.isNewSession).toEqual(false);
+
+    expect(startCounter).toEqual(1);
+    expect(endCounter).toEqual(1);
+  });
+
+  test('startSession() calls endSession()', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let startCounter = 0;
+    let endCounter = 0;
+
+    badges.onSessionStart = () => {
+      startCounter++;
+    };
+
+    badges.onSessionEnd = () => {
+      endCounter++;
+    };
+    
+    badges.setData(emptyData);
+    // start session 1
+    badges.startSession();
+
+    // end session 1 and start session 2
+    badges.startSession();
+
+    const result = badges.toJson();
+
+    expect(result.systemProps.isSessionEnded).toEqual(false);
+    expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.InProgress);
+    expect(result.systemProps.isNewSession).toEqual(false);
+
+    expect(startCounter).toEqual(2);
+    expect(endCounter).toEqual(1);
+  });
+
+  test('startGame() and endGame() call callbacks', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let startCounter = 0;
+    let endCounter = 0;
+
+    badges.onGameStart = () => {
+      startCounter++;
+    };
+
+    badges.onGameEnd = () => {
+      endCounter++;
+    };
+    
+    badges.setData(emptyData);
+    badges.startGame();
+    badges.endGame(GameEndReason.Win);
+
+    const result = badges.toJson();
+
+    expect(result.systemProps.isGameEnded).toEqual(true);
+    expect(result.systemProps.gameStatus).toEqual(PeriodStatus.Ended);
+    expect(result.systemProps.isNewGame).toEqual(false);
+    expect(result.systemProps.gameEndReason).toEqual(GameEndReason.Win);
+
+    expect(startCounter).toEqual(1);
+    expect(endCounter).toEqual(1);
+  });
+
+  test('startGame() calls endGame()', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let startCounter = 0;
+    let endCounter = 0;
+
+    badges.onGameStart = () => {
+      startCounter++;
+    };
+
+    badges.onGameEnd = () => {
+      endCounter++;
+    };
+    
+    badges.setData(emptyData);
+    // start game 1
+    badges.startGame();
+
+    // end game 1 and start game 2
+    badges.startGame();
+
+    const result = badges.toJson();
+
+    expect(result.systemProps.isGameEnded).toEqual(false);
+    expect(result.systemProps.gameStatus).toEqual(PeriodStatus.InProgress);
+    expect(result.systemProps.isNewGame).toEqual(false);
+    expect(result.systemProps.gameEndReason).toEqual(GameEndReason.GameStart);
+
+
+    expect(startCounter).toEqual(2);
+    expect(endCounter).toEqual(1);
+  });
+
+
 });
