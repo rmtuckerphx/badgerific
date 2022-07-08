@@ -268,6 +268,8 @@ const earned = badges.getEarnedBadgesSinceBookmark('mark1');
 ```
 The value returned when setting a bookmark is the ISO 8601 UTC timestamp.
 
+You can clear a specific bookmark with `badges.clearBookmark('mark1')` or clear all bookmarks with `badges.clearAllBookmarks()`.
+
 ### Badge Name and Rewards
 
 The badge system focuses on rules and keeping track of badges earned with associated custom properties. It is recommended that you create a `badges.json` file that includes info such as:
