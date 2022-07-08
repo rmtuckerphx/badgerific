@@ -1,3 +1,4 @@
+import _cloneDeep from 'lodash.clonedeep';
 import jexl = require('jexl');
 import { DateTime } from 'luxon';
 
@@ -37,9 +38,13 @@ export interface EarnedBadge {
   count: number;
 }
 
+export type BadgeProperties = Record<string, string | number | boolean>;
+
+export type ReadonlyBadgeProperties = Readonly<BadgeProperties>
+
 export interface BadgeData {
-  systemProps: Record<string, string | number | boolean>;
-  props: Record<string, string | number | boolean>;
+  systemProps: BadgeProperties;
+  props: BadgeProperties;
   periods?: Record<Period | string, PeriodData>;
   earned: EarnedBadge[];
   bookmarks: Record<string, string>;
@@ -72,10 +77,10 @@ export class Badges {
   }
 
   onBadgeEarned?: (badge: EarnedBadge) => void;
-  onSessionStart?: () => void;
-  onSessionEnd?: () => void;
-  onGameStart?: () => void;
-  onGameEnd?: (reason: GameEndReason) => void;
+  onSessionStart?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
+  onSessionEnd?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
+  onGameStart?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
+  onGameEnd?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties, reason: GameEndReason) => void;
 
   private init() {
     this.data.systemProps.isNewYear = false;
@@ -171,7 +176,7 @@ export class Badges {
 
   setData(data: BadgeData) {
     // deep clone
-    this.data = JSON.parse(JSON.stringify(data, null, 2));
+    this.data = _cloneDeep(data);
 
     this.init();
   }
@@ -375,18 +380,23 @@ export class Badges {
       this.endSession();
     }
 
+    const date = DateTime.now().setZone(this.timeZone);
+    this.prepareSystemProps(date);
+
     this.data.systemProps.isNewSession = true;
     this.data.systemProps.isSessionEnded = false;
     this.data.systemProps.sessionStatus = PeriodStatus.Started;
-    this.data.bookmarks = {};
-
-    if (this.onSessionStart) {
-      this.onSessionStart();
-    }
 
     const count = Number(this.data.periods![Period.Session].key);
     this.data.periods![Period.Session].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Session].lastTimestamp = DateTime.utc().toISO();
+    this.data.systemProps.lifetimeSessions = count + 1;
+
+    if (this.onSessionStart) {
+      const props = _cloneDeep(this.data.props);
+      const systemProps = _cloneDeep(this.data.systemProps);
+      this.onSessionStart(Object.freeze(props), Object.freeze(systemProps));
+    }
 
     this.evaluate();
 
@@ -402,7 +412,9 @@ export class Badges {
     this.data.systemProps.sessionStatus = PeriodStatus.Ended;
 
     if (this.onSessionEnd) {
-      this.onSessionEnd();
+      const props = _cloneDeep(this.data.props);
+      const systemProps = _cloneDeep(this.data.systemProps);
+      this.onSessionEnd(Object.freeze(props), Object.freeze(systemProps));
     }
 
     this.evaluate();
@@ -418,17 +430,23 @@ export class Badges {
       this.endGame(GameEndReason.GameStart);
     }
 
+    const date = DateTime.now().setZone(this.timeZone);
+    this.prepareSystemProps(date);
+
     this.data.systemProps.isNewGame = true;
     this.data.systemProps.isGameEnded = false;
     this.data.systemProps.gameStatus = PeriodStatus.Started;
 
-    if (this.onGameStart) {
-      this.onGameStart();
-    }
-
     const count = Number(this.data.periods![Period.Game].key);
     this.data.periods![Period.Game].key = this.getKeyPeriodCounter(count + 1);
     this.data.periods![Period.Game].lastTimestamp = DateTime.utc().toISO();
+    this.data.systemProps.lifetimeGames = count + 1;
+
+    if (this.onGameStart) {
+      const props = _cloneDeep(this.data.props);
+      const systemProps = _cloneDeep(this.data.systemProps);
+      this.onGameStart(Object.freeze(props), Object.freeze(systemProps));
+    }
 
     this.evaluate();
 
@@ -445,7 +463,9 @@ export class Badges {
     this.data.systemProps.gameEndReason = reason;
 
     if (this.onGameEnd) {
-      this.onGameEnd(reason);
+      const props = _cloneDeep(this.data.props);
+      const systemProps = _cloneDeep(this.data.systemProps);
+      this.onGameEnd(Object.freeze(props), Object.freeze(systemProps), reason);
     }
 
     this.evaluate();

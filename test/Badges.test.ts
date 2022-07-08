@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import { Badges, EarnedBadge, GameEndReason, Period, PeriodStatus, Rule } from '../src/Badges';
+import { Badges, EarnedBadge, GameEndReason, Period, PeriodStatus, BadgeProperties, Rule, ReadonlyBadgeProperties } from '../src/Badges';
 import emptyData from './data/emptyData.json';
 import testData from './data/simpleData.json';
 import testRules from './data/simpleRules.json';
@@ -449,11 +449,11 @@ describe('Badges', () => {
     let startCounter = 0;
     let endCounter = 0;
 
-    badges.onSessionStart = () => {
+    badges.onSessionStart = (props: BadgeProperties, systemProps: BadgeProperties) => {
       startCounter++;
     };
 
-    badges.onSessionEnd = () => {
+    badges.onSessionEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
       endCounter++;
     };
     
@@ -466,21 +466,22 @@ describe('Badges', () => {
     expect(result.systemProps.isSessionEnded).toEqual(true);
     expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.Ended);
     expect(result.systemProps.isNewSession).toEqual(false);
-
+    expect(result.systemProps.lifetimeSessions).toEqual(1);
+    
     expect(startCounter).toEqual(1);
     expect(endCounter).toEqual(1);
   });
 
-  test('startSession() calls endSession()', () => {
+  test.only('startSession() calls endSession()', () => {
     const badges = new Badges(testRules as Rule[], tz);
     let startCounter = 0;
     let endCounter = 0;
 
-    badges.onSessionStart = () => {
+    badges.onSessionStart = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
       startCounter++;
     };
 
-    badges.onSessionEnd = () => {
+    badges.onSessionEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
       endCounter++;
     };
     
@@ -496,6 +497,7 @@ describe('Badges', () => {
     expect(result.systemProps.isSessionEnded).toEqual(false);
     expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.InProgress);
     expect(result.systemProps.isNewSession).toEqual(false);
+    expect(result.systemProps.lifetimeSessions).toEqual(2);
 
     expect(startCounter).toEqual(2);
     expect(endCounter).toEqual(1);
@@ -506,11 +508,11 @@ describe('Badges', () => {
     let startCounter = 0;
     let endCounter = 0;
 
-    badges.onGameStart = () => {
+    badges.onGameStart = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
       startCounter++;
     };
 
-    badges.onGameEnd = () => {
+    badges.onGameEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties, reason: GameEndReason) => {
       endCounter++;
     };
     
@@ -534,11 +536,11 @@ describe('Badges', () => {
     let startCounter = 0;
     let endCounter = 0;
 
-    badges.onGameStart = () => {
+    badges.onGameStart = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
       startCounter++;
     };
 
-    badges.onGameEnd = () => {
+    badges.onGameEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties, reason: GameEndReason) => {
       endCounter++;
     };
     

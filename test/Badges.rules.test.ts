@@ -28,10 +28,10 @@ describe('Badge Rules', () => {
     const badges = new Badges(rules as Rule[], tz);
 
     badges.setData(emptyData);
-    badges.startGame(true);
-    badges.startGame(true);
-    badges.startGame(true);
-    badges.startGame(true);
+    badges.startGame();
+    badges.startGame();
+    badges.startGame();
+    badges.startGame();
     const earned = badges.startGame();
 
     expect(earned.length).toEqual(1);
