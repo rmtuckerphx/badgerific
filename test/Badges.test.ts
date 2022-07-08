@@ -454,6 +454,39 @@ describe('Badges', () => {
     expect(newBadges[1].count).toEqual(1);
   });
 
+  test('clear bookmark', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let result;
+
+    badges.setData(emptyData);
+    badges.setBookmark('mark1');
+
+    result = badges.toJson();
+    expect(result.bookmarks['mark1']).toBeDefined();
+
+    badges.clearBookmark('mark1');
+    result = badges.toJson();
+    expect(result.bookmarks['mark1']).toBeUndefined();
+  });
+
+  test('clear all bookmarks', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+    let result;
+
+    badges.setData(emptyData);
+    badges.setBookmark('mark1');
+    badges.setBookmark('mark2');
+
+    result = badges.toJson();
+    expect(result.bookmarks['mark1']).toBeDefined();
+    expect(result.bookmarks['mark2']).toBeDefined();
+
+    badges.clearAllBookmarks();
+    result = badges.toJson();
+    expect(result.bookmarks['mark1']).toBeUndefined();
+    expect(result.bookmarks['mark2']).toBeUndefined();
+  });
+
   test('startSession() and endSession() call callbacks', () => {
     const badges = new Badges(testRules as Rule[], tz);
     let startCounter = 0;

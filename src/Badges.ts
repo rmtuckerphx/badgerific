@@ -379,6 +379,14 @@ export class Badges {
     return now;
   }
 
+  clearBookmark(name: string): void {
+    delete this.data.bookmarks[name];
+  }
+
+  clearAllBookmarks(): void {
+    this.data.bookmarks = {};
+  }
+
   startSession(): EarnedBadge[] {
     const lastTimestamp = DateTime.utc().toISO();
 
