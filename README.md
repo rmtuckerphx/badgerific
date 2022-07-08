@@ -80,6 +80,8 @@ Periods are used in the following ways:
 
 Rules are defined as JSON and passed to the constructor. Here is a sample rules file which defines a single rule that can only be earned once and can only be updated once per GLOBAL period.
 
+See a list of [sample rules](docs/RULES.md).
+
 ```json
 [
     {
