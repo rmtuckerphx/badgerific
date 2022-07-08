@@ -40,7 +40,8 @@ export interface EarnedBadge {
 
 export type BadgeProperties = Record<string, string | number | boolean>;
 
-export type ReadonlyBadgeProperties = Readonly<BadgeProperties>
+export type ReadonlyBadgeProperties = Readonly<BadgeProperties>;
+export type ReadonlyEarnedBadge = Readonly<EarnedBadge>;
 
 export interface BadgeData {
   systemProps: BadgeProperties;
@@ -76,11 +77,15 @@ export class Badges {
     this.timeZone = timeZone ?? 'UTC';
   }
 
-  onBadgeEarned?: (badge: EarnedBadge) => void;
+  onBadgeEarned?: (badge: ReadonlyEarnedBadge) => void;
   onSessionStart?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
   onSessionEnd?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
   onGameStart?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
-  onGameEnd?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties, reason: GameEndReason) => void;
+  onGameEnd?: (
+    props: ReadonlyBadgeProperties,
+    systemProps: ReadonlyBadgeProperties,
+    reason: GameEndReason,
+  ) => void;
 
   private init() {
     this.data.systemProps.isNewYear = false;
@@ -120,7 +125,6 @@ export class Badges {
 
   private getInitialTimestamp(): string {
     return '1970-01-01T00:00:00.000Z';
-    // return DateTime.fromSeconds(0, { zone: 'UTC' }).toISO();
   }
 
   private initPeriodTime(period: Period) {
@@ -271,7 +275,8 @@ export class Badges {
       this.data.earned.push(newBadge);
 
       if (this.onBadgeEarned) {
-        this.onBadgeEarned(newBadge);
+        const badge = Object.freeze(_cloneDeep(newBadge));
+        this.onBadgeEarned(badge);
       }
     } else {
       // can only update once per updatePeriod
@@ -286,7 +291,8 @@ export class Badges {
           found.lastEarned = DateTime.utc().toISO();
 
           if (this.onBadgeEarned) {
-            this.onBadgeEarned(found);
+            const badge = Object.freeze(_cloneDeep(found));
+            this.onBadgeEarned(badge);
           }
         }
       } else {
@@ -295,7 +301,8 @@ export class Badges {
         found.lastEarned = DateTime.utc().toISO();
 
         if (this.onBadgeEarned) {
-          this.onBadgeEarned(found);
+          const badge = Object.freeze(_cloneDeep(found));
+          this.onBadgeEarned(badge);
         }
       }
     }
@@ -393,9 +400,9 @@ export class Badges {
     this.data.systemProps.lifetimeSessions = count + 1;
 
     if (this.onSessionStart) {
-      const props = _cloneDeep(this.data.props);
-      const systemProps = _cloneDeep(this.data.systemProps);
-      this.onSessionStart(Object.freeze(props), Object.freeze(systemProps));
+      const props = Object.freeze(_cloneDeep(this.data.props));
+      const systemProps = Object.freeze(_cloneDeep(this.data.systemProps));
+      this.onSessionStart(props, systemProps);
     }
 
     this.evaluate();
@@ -412,9 +419,9 @@ export class Badges {
     this.data.systemProps.sessionStatus = PeriodStatus.Ended;
 
     if (this.onSessionEnd) {
-      const props = _cloneDeep(this.data.props);
-      const systemProps = _cloneDeep(this.data.systemProps);
-      this.onSessionEnd(Object.freeze(props), Object.freeze(systemProps));
+      const props = Object.freeze(_cloneDeep(this.data.props));
+      const systemProps = Object.freeze(_cloneDeep(this.data.systemProps));
+      this.onSessionEnd(props, systemProps);
     }
 
     this.evaluate();
@@ -443,9 +450,9 @@ export class Badges {
     this.data.systemProps.lifetimeGames = count + 1;
 
     if (this.onGameStart) {
-      const props = _cloneDeep(this.data.props);
-      const systemProps = _cloneDeep(this.data.systemProps);
-      this.onGameStart(Object.freeze(props), Object.freeze(systemProps));
+      const props = Object.freeze(_cloneDeep(this.data.props));
+      const systemProps = Object.freeze(_cloneDeep(this.data.systemProps));
+      this.onGameStart(props, systemProps);
     }
 
     this.evaluate();
@@ -463,9 +470,9 @@ export class Badges {
     this.data.systemProps.gameEndReason = reason;
 
     if (this.onGameEnd) {
-      const props = _cloneDeep(this.data.props);
-      const systemProps = _cloneDeep(this.data.systemProps);
-      this.onGameEnd(Object.freeze(props), Object.freeze(systemProps), reason);
+      const props = Object.freeze(_cloneDeep(this.data.props));
+      const systemProps = Object.freeze(_cloneDeep(this.data.systemProps));
+      this.onGameEnd(props, systemProps, reason);
     }
 
     this.evaluate();

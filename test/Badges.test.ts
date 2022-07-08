@@ -1,5 +1,15 @@
 import { DateTime } from 'luxon';
-import { Badges, EarnedBadge, GameEndReason, Period, PeriodStatus, BadgeProperties, Rule, ReadonlyBadgeProperties } from '../src/Badges';
+import {
+  Badges,
+  EarnedBadge,
+  GameEndReason,
+  Period,
+  PeriodStatus,
+  BadgeProperties,
+  Rule,
+  ReadonlyBadgeProperties,
+  ReadonlyEarnedBadge,
+} from '../src/Badges';
 import emptyData from './data/emptyData.json';
 import testData from './data/simpleData.json';
 import testRules from './data/simpleRules.json';
@@ -86,7 +96,7 @@ describe('Badges', () => {
     let earnedCounter = 0;
     let newBadges: EarnedBadge[] = [];
 
-    badges.onBadgeEarned = (badge: EarnedBadge) => {
+    badges.onBadgeEarned = (badge: ReadonlyEarnedBadge) => {
       earnedCounter++;
     };
 
@@ -124,7 +134,7 @@ describe('Badges', () => {
     let earnedCounter = 0;
     let newBadges: EarnedBadge[] = [];
 
-    badges.onBadgeEarned = (badge: EarnedBadge) => {
+    badges.onBadgeEarned = (badge: ReadonlyEarnedBadge) => {
       earnedCounter++;
     };
 
@@ -174,7 +184,7 @@ describe('Badges', () => {
     let earned: EarnedBadge[];
     let newBadges: EarnedBadge[] = [];
 
-    badges.onBadgeEarned = (badge: EarnedBadge) => {
+    badges.onBadgeEarned = (badge: ReadonlyEarnedBadge) => {
       earnedCounter++;
     };
 
@@ -453,10 +463,13 @@ describe('Badges', () => {
       startCounter++;
     };
 
-    badges.onSessionEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
+    badges.onSessionEnd = (
+      props: ReadonlyBadgeProperties,
+      systemProps: ReadonlyBadgeProperties,
+    ) => {
       endCounter++;
     };
-    
+
     badges.setData(emptyData);
     badges.startSession();
     badges.endSession();
@@ -467,24 +480,30 @@ describe('Badges', () => {
     expect(result.systemProps.sessionStatus).toEqual(PeriodStatus.Ended);
     expect(result.systemProps.isNewSession).toEqual(false);
     expect(result.systemProps.lifetimeSessions).toEqual(1);
-    
+
     expect(startCounter).toEqual(1);
     expect(endCounter).toEqual(1);
   });
 
-  test.only('startSession() calls endSession()', () => {
+  test('startSession() calls endSession()', () => {
     const badges = new Badges(testRules as Rule[], tz);
     let startCounter = 0;
     let endCounter = 0;
 
-    badges.onSessionStart = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
+    badges.onSessionStart = (
+      props: ReadonlyBadgeProperties,
+      systemProps: ReadonlyBadgeProperties,
+    ) => {
       startCounter++;
     };
 
-    badges.onSessionEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
+    badges.onSessionEnd = (
+      props: ReadonlyBadgeProperties,
+      systemProps: ReadonlyBadgeProperties,
+    ) => {
       endCounter++;
     };
-    
+
     badges.setData(emptyData);
     // start session 1
     badges.startSession();
@@ -512,10 +531,14 @@ describe('Badges', () => {
       startCounter++;
     };
 
-    badges.onGameEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties, reason: GameEndReason) => {
+    badges.onGameEnd = (
+      props: ReadonlyBadgeProperties,
+      systemProps: ReadonlyBadgeProperties,
+      reason: GameEndReason,
+    ) => {
       endCounter++;
     };
-    
+
     badges.setData(emptyData);
     badges.startGame();
     badges.endGame(GameEndReason.Win);
@@ -540,10 +563,14 @@ describe('Badges', () => {
       startCounter++;
     };
 
-    badges.onGameEnd = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties, reason: GameEndReason) => {
+    badges.onGameEnd = (
+      props: ReadonlyBadgeProperties,
+      systemProps: ReadonlyBadgeProperties,
+      reason: GameEndReason,
+    ) => {
       endCounter++;
     };
-    
+
     badges.setData(emptyData);
     // start game 1
     badges.startGame();
@@ -558,10 +585,7 @@ describe('Badges', () => {
     expect(result.systemProps.isNewGame).toEqual(false);
     expect(result.systemProps.gameEndReason).toEqual(GameEndReason.GameStart);
 
-
     expect(startCounter).toEqual(2);
     expect(endCounter).toEqual(1);
   });
-
-
 });
