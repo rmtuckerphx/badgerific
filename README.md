@@ -1,5 +1,7 @@
 # Badgerific
 
+![logo](docs/images/logo.png)
+
 ## Overview
 
 Badgerific is the badges/achievements library for Node.js that you've been looking for. Great for games and app gamification.
