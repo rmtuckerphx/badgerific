@@ -1,7 +1,7 @@
 [
     {
         "id": "b01",
-        "description": "First game",
+        "description": "First game started",
         "active": true,
         "max": 1,
         "updatePeriod": "GLOBAL",
@@ -9,15 +9,15 @@
     },
     {
         "id": "b02",
-        "description": "Fifth game",
+        "description": "Fifth game ended",
         "active": true,
         "max": 1,
         "updatePeriod": "GLOBAL",
-        "condition": "system.isNewGame && system.lifetimeGames == 5"
+        "condition": "system.isGameEnded && system.lifetimeGames == 5"
     },
     {
         "id": "b03",
-        "description": "First game as a subscribed player",
+        "description": "First game started as a subscribed player",
         "active": true,
         "max": 1,
         "updatePeriod": "GLOBAL",
@@ -30,5 +30,117 @@
         "max": null,
         "updatePeriod": "YEAR",
         "condition": "system.isNewGame && system.date in ['2023-01-01', '2024-01-01']"
+    },
+    {
+        "id": "b05",
+        "description": "Win 3 games in a day",
+        "active": true,
+        "max": null,
+        "updatePeriod": "DAY",
+        "condition": "system.isGameEnded && dailyWins == 3"
+    },
+    {
+        "id": "b06",
+        "description": "Has earned badges b01 and b06",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "hasEarnedBadge('b01') && badgeCount('b05') > 0"
+    },
+    {
+        "id": "b07",
+        "description": "Every 10th game completed but not multiples of 20, 50, 100.",
+        "active": true,
+        "max": null,
+        "updatePeriod": "GAME",
+        "condition": "system.isGameEnded && system.lifetimeGamesEnded % 10 == 0 && system.lifetimeGamesEnded % 20 != 0 && system.lifetimeGamesEnded % 50 != 0 && system.lifetimeGamesEnded % 100 != 0"
+    },
+    {
+        "id": "b08",
+        "description": "Every 20th game completed but not multiples of 100.",
+        "active": true,
+        "max": null,
+        "updatePeriod": "GAME",
+        "condition": "system.isGameEnded && system.lifetimeGamesEnded % 20 == 0 && system.lifetimeGamesEnded % 100 != 0"
+    },
+    {
+        "id": "b09",
+        "description": "Every 50th game completed but not multiples of 100.",
+        "active": true,
+        "max": null,
+        "updatePeriod": "GAME",
+        "condition": "system.isGameEnded && system.lifetimeGamesEnded % 50 == 0 && system.lifetimeGamesEnded % 100 != 0"
+    },
+    {
+        "id": "b10",
+        "description": "Every 100th game.",
+        "active": true,
+        "max": null,
+        "updatePeriod": "GAME",
+        "condition": "system.isGameEnded && system.lifetimeGamesEnded % 100 == 0"
+    },
+    {
+        "id": "b11",
+        "description": "Complete a game between 5am and 11am",
+        "active": true,
+        "max": 3,
+        "updatePeriod": "DAY",
+        "condition": "system.isGameEnded && system.time >= '05:00' && system.time < '11:00'"
+    },
+    {
+        "id": "b12",
+        "description": "Complete a game between 11am and 3pm",
+        "active": true,
+        "max": 3,
+        "updatePeriod": "DAY",
+        "condition": "system.isGameEnded && system.time >= '11:00' && system.time < '15:00'"
+    },
+    {
+        "id": "b13",
+        "description": "Complete a game between 3pm and 6pm",
+        "active": true,
+        "max": 3,
+        "updatePeriod": "DAY",
+        "condition": "system.isGameEnded && system.time >= '15:00' && system.time < '18:00'"
+    },
+    {
+        "id": "b14",
+        "description": "Complete a game between 6pm and 5am",
+        "active": true,
+        "max": 3,
+        "updatePeriod": "DAY",
+        "condition": "system.isGameEnded && (system.time >= '18:00' || system.time < '05:00')"
+    },
+    {
+        "id": "b15",
+        "description": "Win a game on the weekend",
+        "active": true,
+        "max": 10,
+        "updatePeriod": "WEEK",
+        "condition": "system.isGameEnded && system.gameEndReason == 'WIN' && system.isWeekEnd"
+    },
+    {
+        "id": "b16",
+        "description": "Win a game with a perfect score.",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "system.isGameEnded && system.gameEndReason == 'WIN' && score == 10"
+    },
+    {
+        "id": "b17",
+        "description": "Lose a game with 0 correct answers.",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "system.isGameEnded && system.gameEndReason == 'LOSE' && correctAnswers == 0"
+    },
+    {
+        "id": "b18",
+        "description": "Answer 5 history questions correctly.",
+        "active": true,
+        "max": 1,
+        "updatePeriod": "GLOBAL",
+        "condition": "historyCorrectCount == 5"
     }
 ]

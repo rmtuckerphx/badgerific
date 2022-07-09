@@ -4,6 +4,8 @@
 
 Badgerific is the badges/achievements library for Node.js that you've been looking for. Great for games and app gamification.
 
+To see samples of the types of rules that Badgerific supports, see [sample rules](docs/RULES.md).
+
 ## Install
 
 Install the library:
@@ -162,6 +164,10 @@ Here is a list of system properties:
 | system.isWeekEnd | boolean | Is current day Saturday or Sunday |
 | system.lifetimeSessions | number | Number of total sessions. |
 | system.lifetimeGames | number | Number of total games. |
+| system.lifetimeGamesEnded | number | Number of total games ended for whatever reason. |
+| system.lifetimeGameWins | number | Number of total games ended as a win. |
+| system.lifetimeGameLoses | number | Number of total games ended as a loss. |
+| system.lifetimeGamesCanceled | number | Number of total games ended by cancelling. |
 | system.isNewSession | boolean | Start of a session. | Only `true` on first `evaluate()` after `startSession()`. The value of `system.sessionStatus` is set to `'STARTED'` |
 | system.isSessionEnd | boolean | End of a session. | Only `true` on first `evaluate()` after `endSession()`. The value of `system.sessionStatus` is set to `'ENDED'` |
 | system.sessionStatus | string | 'NONE', 'STARTED', 'IN_PROGRESS', 'ENDED' |

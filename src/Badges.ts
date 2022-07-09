@@ -364,6 +364,22 @@ export class Badges {
     this.data.systemProps.lifetimeSessions = lifetimeSessions;
     this.data.systemProps.lifetimeGames = lifetimeGames;
 
+    if (!this.data.systemProps.lifetimeGamesEnded) {
+      this.data.systemProps.lifetimeGamesEnded = 0;
+    }
+
+    if (!this.data.systemProps.lifetimeGamesCanceled) {
+      this.data.systemProps.lifetimeGamesCanceled = 0;
+    }
+
+    if (!this.data.systemProps.lifetimeGameWins) {
+      this.data.systemProps.lifetimeGameWins = 0;
+    }
+
+    if (!this.data.systemProps.lifetimeGameLoses) {
+      this.data.systemProps.lifetimeGameLoses = 0;
+    }
+
     if (isNewTimePeriod && this.onNewTimePeriod) {
       const props = Object.freeze(_cloneDeep(this.data.props));
       const systemProps = Object.freeze(_cloneDeep(this.data.systemProps));
@@ -493,6 +509,24 @@ export class Badges {
     this.data.systemProps.isGameEnded = true;
     this.data.systemProps.gameStatus = PeriodStatus.Ended;
     this.data.systemProps.gameEndReason = reason;
+
+    const ended = this.data.systemProps.lifetimeGamesEnded as number;
+    this.data.systemProps.lifetimeGamesEnded = ended + 1;
+
+    if (reason === GameEndReason.Win) {
+      const wins = this.data.systemProps.lifetimeGameWins as number;
+      this.data.systemProps.lifetimeGameWins = wins + 1;
+    }
+
+    if (reason === GameEndReason.Lose) {
+      const loses = this.data.systemProps.lifetimeGameLoses as number;
+      this.data.systemProps.lifetimeGameLoses = loses + 1;
+    }
+
+    if (reason === GameEndReason.Cancel) {
+      const cancels = this.data.systemProps.lifetimeGamesCanceled as number;
+      this.data.systemProps.lifetimeGamesCanceled = cancels + 1;
+    }
 
     if (this.onGameEnd) {
       const props = Object.freeze(_cloneDeep(this.data.props));
