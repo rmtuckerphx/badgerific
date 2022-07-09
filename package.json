@@ -1,6 +1,6 @@
 {
   "name": "badgerific",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Badgerific is the badges/achievements library for Node.js that you've been looking for. Great for games and app gamification.",
   "main": "dist/index",
   "types": "dist/index.d.ts",
@@ -64,5 +64,4 @@
     "url": "https://github.com/rmtuckerphx/badgerific/issues"
   },
   "homepage": "https://github.com/rmtuckerphx/badgerific#readme"
-
 }
