@@ -55,5 +55,14 @@
     "jexl": "^2.3.0",
     "lodash.clonedeep": "^4.5.0",
     "luxon": "^2.4.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rmtuckerphx/badgerific.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rmtuckerphx/badgerific/issues"
+  },
+  "homepage": "https://github.com/rmtuckerphx/badgerific#readme"
+
 }
