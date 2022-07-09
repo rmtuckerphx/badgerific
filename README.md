@@ -1,6 +1,6 @@
 # Badgerific
 
-![logo](docs/images/logo.png)
+![logo](docs/images/logo.svg)
 
 ## Overview
 
