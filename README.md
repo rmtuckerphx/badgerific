@@ -1,19 +1,19 @@
-# Badges
+# Badgerific
 
 ## Overview
 
-The Badges library for Node.js allows the use of badges/achievements in apps or games.
+Badgerific is the badges/achievements library for Node.js that you've been looking for. Great for games and app gamification.
 
 ## Install
 
 Install the library:
 
-`npm install badges --save`
+`npm install badgerific --save`
 
 Add it to your JavaScript project:
 
 ```js
-const Badges = require('badges')
+const Badges = require('badgerific')
 const rules = require('./badgeRules.json')
 
 const badges = new Badges(rules);
@@ -23,7 +23,7 @@ const badges = new Badges(rules);
 Add it to your TypeScript project:
 
 ```ts
-import { Badges } from 'badges';
+import { Badges } from 'badgerific';
 import rules from './badgeRules.json';
 
 const badges = new Badges(rules);

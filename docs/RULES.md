@@ -1,4 +1,4 @@
-# Rules
+# Badgerific Rules - Examples
 
 Here are some examples of the rules you can create.
 
@@ -12,7 +12,7 @@ Rule:
 ```json
 {
     "id": "b01",
-    "description": "First game",
+    "description": "First game started",
     "active": true,
     "max": 1,
     "updatePeriod": "GLOBAL",
@@ -34,7 +34,7 @@ const earned = badges.startGame();
 ```
 
 ## 5th Game
-Earned when a new game starts and it is the fifth game ever played.
+Earned when the fifth game ever played is ended.
 
 This badge can only be earned once.
 
@@ -43,11 +43,11 @@ Rule:
 ```json
 {
     "id": "b02",
-    "description": "Fifth game",
+    "description": "Fifth game ended",
     "active": true,
     "max": 1,
     "updatePeriod": "GLOBAL",
-    "condition": "system.isNewGame && system.lifetimeGames == 5"
+    "condition": "system.isGameEnd && system.lifetimeGames == 5"
 },
 ```
 
@@ -57,7 +57,11 @@ Usage:
 const badges = new Badges(rules as Rule[], tz);
 
 badges.setData(badgeData);
-const earned = badges.startGame();
+
+badges.startGame();
+
+// when game ends
+const earned = badges.endGame(GameEndReason.Win);
 
 // expect(earned.length).toEqual(1);
 // expect(earned[0].id).toEqual('b02');
