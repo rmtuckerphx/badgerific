@@ -106,7 +106,9 @@ See a list of [sample rules](docs/RULES.md).
 #### Rule Condition
 
 The condition is evaluated by [Jexl](https://github.com/TomFrost/Jexl#all-the-details) and can consist of:
-- property or system property
+- custom property or properties
+- system property or properties
+- system functions
 - operators
 - comparisons
 
@@ -171,11 +173,40 @@ Here is a list of system properties:
 
 NOTE: The following system properties only return `true` on the first `badges.evaluate()` call when the new period starts: `isNewYear`, `isNewMonth`, `isNewWeek`, `isNewDay`, `isNewHour`. Don't use these in expressions that use other non-time-based properties. Similarly, the following are only set to `true` for the first call to `badges.evaluate()` after a session\game is started\ended: `isNewSession`, `isSessionEnd`, `isNewGame`, `isGameEnd`.
 
+**System Functions**
+
+Here is a list of functions that can be used in conditions. These allow rules based on whether the player has earned another badge.
+
+| Function | Returns | Description |
+| -------- | ------ | ----------- |
+| badgeCount('b01') | number | How many times the badge has been earned. |
+| hasEarnedBadge('b01') | boolean | If the badge has been earned or not. |
+
+
+
 #### Rule Evaluation
 
 Rules are only evaluated when the `badges.evaluate()` method is called. In most cases you will not call this method directly. Whenever `badges.setValue()`, `badges.addValue()` or `badges.subtractValue()` is called then `evaluate()` is called unless `true` is passed to the `skipEval` parameter. The `badges.evaluate()` method is also called for `badges.startSession()`, `badges.endSession()`, `badges.startGame()`, `badges.endGame()`.
 
 On evaluation, every active rule is checked even if the condition doesn't include that property. If the `condition` is true, the `updatePeriod` is checked to see if the badge has been earned already since the start of the current period. If it has, then it will not be earned again. Finally, if the rule has set `max` then the count of the times a badge was earned is checked against this max value. If all thoses checks pass, the badge is earned.
+
+### New Time Period
+
+The `onNewTimePeriod` callback is called when a time period (year, month, week, day, hour) has changed. The custom and system properties are passed as parameters. Check `systemProps` to see which time period(s) changed: `isNewYear`, `isNewMonth`, `isNewWeek`, `isNewDay`, `isNewHour`. These values will be true for only the next call to `evaluate()` when the time period has changed and not again until the next time the period changes. 
+
+The parameters to the callback are readonly/frozen so you must use `badges.setValue()`, `badges.addValue()` or `badges.subtractValue()` to change a value. Set the `skipEval` flag to `true` to not trigger extra calls to `evaluate()`.
+
+```ts
+badges.onNewTimePeriod = (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => {
+  badges.setValue('prop1', 0, true);
+  if (systemProps.time > '17:00') {
+    // do something
+  }
+};
+```
+
+NOTE: It is important to understand that `onNewTimePeriod` is not called *at* a specific time (such as the top of the hour) but when the time periods are evaluated and if the period has changed since the last time it was checked.
+
 
 ### Start/End Session
 The developer determines what a session is and controls the start and end of that session using `badges.startSession()` and `badges.endSession()`. Calling these methods will cause a call to `evaluate()` to check all badge rules.

@@ -75,9 +75,13 @@ export class Badges {
   constructor(rules: Rule[], timeZone?: string) {
     this.rules = rules;
     this.timeZone = timeZone ?? 'UTC';
+
+    jexl.addFunction('hasEarnedBadge', (id) => this.hasEarnedBadge(id));
+    jexl.addFunction('badgeCount', (id) => this.badgeCount(id));
   }
 
   onBadgeEarned?: (badge: ReadonlyEarnedBadge) => void;
+  onNewTimePeriod?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
   onSessionStart?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
   onSessionEnd?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
   onGameStart?: (props: ReadonlyBadgeProperties, systemProps: ReadonlyBadgeProperties) => void;
@@ -263,7 +267,7 @@ export class Badges {
   }
 
   private saveEarnedBadge(rule: Rule) {
-    const found = this.data.earned.find((b: { id: string }) => b.id === rule.id);
+    const found = this.data.earned.find((b) => b.id === rule.id);
 
     if (!found) {
       const newBadge: EarnedBadge = {
@@ -317,27 +321,34 @@ export class Badges {
     const lifetimeSessions = Number(this.data.periods![Period.Session].key);
     const lifetimeGames = Number(this.data.periods![Period.Game].key);
 
+    let isNewTimePeriod = false;
+
     if (this.data.periods![Period.Year].key !== yearKey) {
+      isNewTimePeriod = true;
       this.data.systemProps.isNewYear = true;
       this.data.periods![Period.Year] = { key: yearKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Month].key !== monthKey) {
+      isNewTimePeriod = true;
       this.data.systemProps.isNewMonth = true;
       this.data.periods![Period.Month] = { key: monthKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Day].key !== dayKey) {
+      isNewTimePeriod = true;
       this.data.systemProps.isNewDay = true;
       this.data.periods![Period.Day] = { key: dayKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Hour].key !== hourKey) {
+      isNewTimePeriod = true;
       this.data.systemProps.isNewHour = true;
       this.data.periods![Period.Hour] = { key: hourKey, lastTimestamp: DateTime.utc().toISO() };
     }
 
     if (this.data.periods![Period.Week].key !== weekKey) {
+      isNewTimePeriod = true;
       this.data.systemProps.isNewWeek = true;
       this.data.periods![Period.Week] = { key: weekKey, lastTimestamp: DateTime.utc().toISO() };
     }
@@ -352,6 +363,12 @@ export class Badges {
 
     this.data.systemProps.lifetimeSessions = lifetimeSessions;
     this.data.systemProps.lifetimeGames = lifetimeGames;
+
+    if (isNewTimePeriod && this.onNewTimePeriod) {
+      const props = Object.freeze(_cloneDeep(this.data.props));
+      const systemProps = Object.freeze(_cloneDeep(this.data.systemProps));
+      this.onNewTimePeriod(props, systemProps);
+    }
   }
 
   getEarnedBadges(period: Period = Period.Global): EarnedBadge[] {
@@ -485,5 +502,14 @@ export class Badges {
 
     this.evaluate();
     return this.getEarnedBadgesSince(lastTimestamp);
+  }
+
+  badgeCount(badgeId: string): number {
+    const found = this.data.earned.find((b) => b.id === badgeId);
+    return found ? found.count : 0;
+  }
+
+  hasEarnedBadge(badgeId: string): boolean {
+    return this.badgeCount(badgeId) > 0;
   }
 }
