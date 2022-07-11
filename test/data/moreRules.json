@@ -41,7 +41,7 @@
     },
     {
         "id": "b06",
-        "description": "Has earned badges b01 and b06",
+        "description": "Has earned badges b01 and b05",
         "active": true,
         "max": 1,
         "updatePeriod": "GLOBAL",
