@@ -12,6 +12,7 @@ import {
 } from '../src/Badges';
 import emptyData from './data/emptyData.json';
 import testData from './data/simpleData.json';
+import badgeData from './data/badgeData.json';
 import testRules from './data/simpleRules.json';
 import * as mockHelpers from './mockHelpers';
 
@@ -621,4 +622,14 @@ describe('Badges', () => {
     expect(startCounter).toEqual(2);
     expect(endCounter).toEqual(1);
   });
+
+  test('JSON badges data should match set data', () => {
+    const badges = new Badges(testRules as Rule[], tz);
+
+    badges.setData(badgeData);
+    const result = badges.toJson();
+
+    expect(result).toEqual(badgeData);
+  });
+
 });

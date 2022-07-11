@@ -91,33 +91,6 @@ export class Badges {
     reason: GameEndReason,
   ) => void;
 
-  private init() {
-    this.data.systemProps.isNewYear = false;
-    this.data.systemProps.isNewMonth = false;
-    this.data.systemProps.isNewDay = false;
-    this.data.systemProps.isNewHour = false;
-    this.data.systemProps.isNewWeek = false;
-    this.data.systemProps.isNewSession = false;
-    this.data.systemProps.isSessionEnded = false;
-    this.data.systemProps.sessionStatus = PeriodStatus.None;
-    this.data.systemProps.isNewGame = false;
-    this.data.systemProps.isGameEnded = false;
-    this.data.systemProps.gameStatus = PeriodStatus.None;
-
-    if (!this.data.periods) {
-      this.data.periods = {};
-    }
-
-    this.initPeriodGlobal();
-    this.initPeriodTime(Period.Year);
-    this.initPeriodTime(Period.Month);
-    this.initPeriodTime(Period.Day);
-    this.initPeriodTime(Period.Hour);
-    this.initPeriodTime(Period.Week);
-    this.initPeriodCounter(Period.Session);
-    this.initPeriodCounter(Period.Game);
-  }
-
   private initPeriodGlobal() {
     if (!this.data.periods?.[Period.Global]) {
       this.data.periods![Period.Global] = {
@@ -183,10 +156,46 @@ export class Badges {
   }
 
   setData(data: BadgeData) {
-    // deep clone
-    this.data = _cloneDeep(data);
+    const cloned = _cloneDeep(data);
 
-    this.init();
+    const defaultSystemProps = {
+      isNewYear: false,
+      isNewMonth: false,
+      isNewDay: false,
+      isNewHour: false,
+      isNewWeek: false,
+      isNewSession: false,
+      isSessionEnded: false,
+      sessionStatus: PeriodStatus.None,
+      isNewGame: false,
+      isGameEnded: false,
+      gameStatus: PeriodStatus.None,
+      lifetimeSessions: 0,
+      lifetimeGames: 0,
+      lifetimeGamesEnded: 0,
+      lifetimeGamesCanceled: 0,
+      lifetimeGameWins: 0,
+      lifetimeGameLoses: 0,
+    };
+
+    this.data = cloned;
+
+    if (Object.keys(this.data.systemProps).length === 0) {
+      this.data.systemProps = defaultSystemProps;
+    }
+
+    if (!this.data.periods) {
+      this.data.periods = {};
+    }
+
+    this.initPeriodGlobal();
+    this.initPeriodTime(Period.Year);
+    this.initPeriodTime(Period.Month);
+    this.initPeriodTime(Period.Day);
+    this.initPeriodTime(Period.Hour);
+    this.initPeriodTime(Period.Week);
+    this.initPeriodCounter(Period.Session);
+    this.initPeriodCounter(Period.Game);
   }
 
   toJson(): BadgeData {
